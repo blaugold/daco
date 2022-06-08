@@ -1,0 +1,60 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  format:
+    timeout-minutes: 15
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      - name: Setup Dart
+        uses: dart-lang/setup-dart@v1
+      - name: Setup Melos
+        uses: bluefireteam/melos-action@v2
+      - name: Activate daco
+        run: melos activate
+      - name: Check formatting of Dart code
+        run: melos format-check
+
+  analyze:
+    timeout-minutes: 15
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      - name: Setup Dart
+        uses: dart-lang/setup-dart@v1
+      - name: Setup Melos
+        uses: bluefireteam/melos-action@v2
+      - name: Analyze Dart packages
+        uses: invertase/github-action-dart-analyzer@v1
+        with:
+          fatal-infos: true
+          fatal-warnings: true
+
+  test:
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      - name: Setup Dart
+        uses: dart-lang/setup-dart@v1
+      - name: Setup Melos
+        uses: bluefireteam/melos-action@v2
+      - name: Activate daco
+        run: melos activate
+      - name: Run tests
+        run: melos test --no-select

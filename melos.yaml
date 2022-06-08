@@ -1,0 +1,39 @@
+name: daco
+repository: https://github.com/blaugold/daco
+packages:
+  - 'packages/**'
+
+ide:
+  intellij: false
+
+command:
+  bootstrap:
+    usePubspecOverrides: true
+  version:
+    linkToCommits: true
+    branch: main
+
+scripts:
+  activate:
+    description: Activates the local version of daco globally.
+    exec: dart pub global activate --source path . --overwrite
+    select-package:
+      scope: daco
+
+  format:
+    description: Formats Dart code in the repository with daco.
+    run: daco format .
+
+  format-check:
+    description: Checks formatting of Dart code in the repository with daco.
+    run: daco format --set-exit-if-changed .
+
+  analyze:
+    description: Analyzes Dart packages in the repository.
+    exec: dart analyze --fata-infos --fata-warnings
+
+  test:
+    description: Runs tests.
+    run: dart test -r expanded
+    exec:
+      concurrency: 1
