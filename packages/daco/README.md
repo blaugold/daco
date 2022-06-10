@@ -6,11 +6,6 @@ A tool for maintaining **Da**rt **co**mments (daco).
 
 ## TODO
 
-- [x] Format doc comments as Markdown
-- [x] Format Dart code in comments
-- [ ] Docs
-- [x] Report correct location of parser error for embedded Dart code
-- [ ] Support disabling formatting embedded Dart code
 - [ ] Support standalone statements in embedded Dart code
 - [ ] Support formatting simple comments
 

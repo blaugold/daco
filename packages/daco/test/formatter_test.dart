@@ -178,7 +178,6 @@ const a = 'a';
       test(
         'comments are formatted',
         () => commentsFormattingTest(
-          lineLength: 30,
           input: '''
 /// ```dart
 /// /// a  a
@@ -189,6 +188,26 @@ const a = 'a';
           output: '''
 /// ```dart
 /// /// a a
+/// const a = 'a';
+/// ```
+const a = 'a';
+''',
+        ),
+      );
+
+      test(
+        'do not format code tagged with no_format',
+        () => commentsFormattingTest(
+          input: '''
+/// ```dart no_format
+/// /// a  a
+/// const a = 'a';
+/// ```
+const a = 'a';
+''',
+          output: '''
+/// ```dart no_format
+/// /// a  a
 /// const a = 'a';
 /// ```
 const a = 'a';
