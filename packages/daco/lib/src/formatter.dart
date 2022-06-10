@@ -152,11 +152,24 @@ Future<String> _formatMarkdown(
 }
 
 final _fencedDartCodeRegExp =
-    RegExp(r'```dart\n(((?!```)(.|\n))*)```', multiLine: true);
+    RegExp(r'```dart([^\n]*)\n(((?!```)(.|\n))*)```', multiLine: true);
+
+const _noFormatTag = 'no_format';
+
+List<String> _parseTags(String tags) => tags
+    .split(' ')
+    .map((tag) => tag.trim())
+    .whereNot((tag) => tag.isEmpty)
+    .toList();
 
 void _validateFencedDartCode(String source, List<int> lineOffsets) {
   for (final match in _fencedDartCodeRegExp.allMatches(source)) {
-    final dartSource = match.group(1)!;
+    final tags = _parseTags(match.group(1)!);
+    if (tags.contains(_noFormatTag)) {
+      continue;
+    }
+
+    final dartSource = match.group(2)!;
     final parseResult = parseString(
       content: dartSource,
       throwIfDiagnostics: false,
@@ -184,15 +197,23 @@ Future<String> _formatFencedDartCode(
   Set<StyleFix> fixes,
   PrettierService prettierService,
 ) async {
-  var fencedDartCodes = _fencedDartCodeRegExp
-      .allMatches(source)
-      .map((match) => match.group(1)!)
-      .toList();
+  final rawTags = <String>[];
+  final parsedTags = <String, List<String>>{};
+  var fencedDartCodes = _fencedDartCodeRegExp.allMatches(source).map((match) {
+    final code = match.group(2)!;
+    rawTags.add(match.group(1)!);
+    parsedTags[code] = _parseTags(match.group(1)!);
+    return code;
+  }).toList();
 
   final dartFormatter = DartFormatter(pageWidth: lineLength, fixes: fixes);
 
   fencedDartCodes = await Future.wait(
     fencedDartCodes.map((code) async {
+      if (parsedTags[code]!.contains(_noFormatTag)) {
+        return code;
+      }
+
       code = dartFormatter.format(code);
 
       return formatCommentsInSource(
@@ -206,7 +227,7 @@ Future<String> _formatFencedDartCode(
   var i = 0;
   return source.replaceAllMapped(
     _fencedDartCodeRegExp,
-    (match) => '```dart\n${fencedDartCodes[i++]}```',
+    (match) => '```dart${rawTags[i]}\n${fencedDartCodes[i++]}```',
   );
 }
 
