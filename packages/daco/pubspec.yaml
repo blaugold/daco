@@ -21,4 +21,5 @@ dependencies:
   path: ^1.8.2
 
 dev_dependencies:
+  term_glyph: ^1.2.0
   test: ^1.16.0

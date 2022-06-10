@@ -3,14 +3,21 @@ import 'dart:async';
 import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/error/error.dart';
 import 'package:analyzer/source/line_info.dart';
+import 'package:dart_style/dart_style.dart';
 
 /// Function that takes a [comment] and returns the updated version of the
 /// comment.
+///
+/// [lineLength] is the maximum length each line of the updated comment should
+/// have.
+///
+/// [lineOffsets] are the offsets to the beginning of each line in [comment] in
+/// the original source.
 typedef CommentProcessor = FutureOr<String> Function(
   String comment,
   int lineLength,
+  List<int> lineOffsets,
 );
 
 /// Processes documentation comments in a Dart source code with the given
@@ -28,7 +35,7 @@ Future<String> processComments({
   );
   final errors = result.errors;
   if (errors.isNotEmpty) {
-    throw InvalidSyntax(errors);
+    throw FormatterException(errors);
   }
 
   final commentCollector = _CommentCollector();
@@ -43,9 +50,11 @@ Future<String> processComments({
 
   await Future.wait(
     commentNodes.map((commentNode) async {
+      final lineOffsets = <int>[];
       commentStrings[commentNode] = (await processor(
-        commentNode.content,
+        commentNode.content(lineOffsets),
         commentNode.lineLength(result.lineInfo, lineLength),
+        lineOffsets,
       ))
           .toCommentSource(commentNode.indentation(result.lineInfo));
     }),
@@ -75,25 +84,6 @@ Future<String> processComments({
   return parts.join();
 }
 
-/// Exception that is thrown when the source code is syntactically invalid.
-class InvalidSyntax implements Exception {
-  /// Creates an exception that is thrown when the source code is syntactically
-  /// invalid.
-  InvalidSyntax(this.errors);
-
-  /// The errors that were found in the source code.
-  final List<AnalysisError> errors;
-
-  @override
-  String toString() {
-    final buffer = StringBuffer('Dart code contains syntax errors:');
-    for (final error in errors) {
-      buffer.writeln(error.toString());
-    }
-    return buffer.toString();
-  }
-}
-
 class _CommentCollector extends RecursiveAstVisitor<void> {
   final List<Comment> comments = [];
 
@@ -104,6 +94,8 @@ class _CommentCollector extends RecursiveAstVisitor<void> {
     }
   }
 }
+
+final _commentPrefixRegExp = RegExp('/// ?');
 
 extension on Comment {
   /// The number of columns by which the comment is indented in the source.
@@ -117,8 +109,20 @@ extension on Comment {
   }
 
   /// The content of the comment.
-  String get content => tokens
-      .map((token) => '${token.lexeme.replaceFirst(RegExp('/// ?'), '')}\n')
+  ///
+  /// Populates the [lineOffsets] with the offsets to the beginning of each line
+  /// in the source.
+  String content(List<int> lineOffsets) => tokens
+      .map(
+        (token) =>
+            // ignore: prefer_interpolation_to_compose_strings
+            token.lexeme.replaceFirstMapped(_commentPrefixRegExp, (match) {
+              final length = match.end - match.start;
+              lineOffsets.add(token.offset + length);
+              return '';
+            }) +
+            '\n',
+      )
       .join();
 }
 

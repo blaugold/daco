@@ -2,6 +2,8 @@
 
 import 'dart:io';
 
+import 'package:analyzer/dart/analysis/utilities.dart';
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:ansi_styles/ansi_styles.dart';
 import 'package:collection/collection.dart';
@@ -45,13 +47,33 @@ Future<FormattingResult> formatFile(
       prettierService: prettierService,
     );
     // ignore: avoid_catches_without_on_clauses
-  } catch (e) {
-    logger.stderr('${AnsiStyles.red('FAILED')}    $relativePath');
-    if (e is FormatterException) {
-      logger.stderr(e.message(color: stdout.supportsAnsiEscapes));
-    } else {
-      logger.stderr(e.toString());
+  } catch (exception) {
+    FormatterException? formatterException;
+    CharacterLocation? fencedCodeBlockLocation;
+
+    if (exception is FormatterException) {
+      formatterException = exception;
+    } else if (exception is _FencedCodeBlockFormatterException) {
+      formatterException = exception.exception;
+      final lineInfo = LineInfo.fromContent(source);
+      fencedCodeBlockLocation = lineInfo.getLocation(exception.offset);
     }
+
+    if (formatterException == null) {
+      rethrow;
+    }
+
+    logger.stderr('${AnsiStyles.red('FAILED')}    $relativePath');
+    if (fencedCodeBlockLocation != null) {
+      logger.stderr(
+        'in ${AnsiStyles.bold.underline('fenced code block')} at '
+        'line ${fencedCodeBlockLocation.lineNumber}, '
+        'column ${fencedCodeBlockLocation.columnNumber}:',
+      );
+    }
+    logger
+        .stderr(formatterException.message(color: stdout.supportsAnsiEscapes));
+
     return FormattingResult.failed;
   }
 
@@ -76,7 +98,8 @@ Future<String> formatCommentsInSource(
       source: source,
       path: path,
       lineLength: dartFormatter.pageWidth,
-      processor: (comment, lineLength) async {
+      processor: (comment, lineLength, lineOffsets) async {
+        _validateFencedDartCode(comment, lineOffsets);
         comment = await _formatMarkdown(comment, lineLength, prettierService);
         return _formatFencedDartCode(
           comment,
@@ -131,6 +154,30 @@ Future<String> _formatMarkdown(
 final _fencedDartCodeRegExp =
     RegExp(r'```dart\n(((?!```)(.|\n))*)```', multiLine: true);
 
+void _validateFencedDartCode(String source, List<int> lineOffsets) {
+  for (final match in _fencedDartCodeRegExp.allMatches(source)) {
+    final dartSource = match.group(1)!;
+    final parseResult = parseString(
+      content: dartSource,
+      throwIfDiagnostics: false,
+      path: 'fenced code block',
+    );
+    final syntacticErrors = parseResult.errors
+        .where((error) => error.errorCode.type == ErrorType.SYNTACTIC_ERROR)
+        .toList();
+    if (syntacticErrors.isNotEmpty) {
+      final lineInfo = LineInfo.fromContent(source);
+      final location = lineInfo.getLocation(match.start);
+      final offsetInSource =
+          lineOffsets[location.lineNumber - 1] + location.columnNumber - 1;
+      throw _FencedCodeBlockFormatterException(
+        offsetInSource,
+        FormatterException(parseResult.errors),
+      );
+    }
+  }
+}
+
 Future<String> _formatFencedDartCode(
   String source,
   int lineLength,
@@ -161,4 +208,14 @@ Future<String> _formatFencedDartCode(
     _fencedDartCodeRegExp,
     (match) => '```dart\n${fencedDartCodes[i++]}```',
   );
+}
+
+class _FencedCodeBlockFormatterException implements Exception {
+  _FencedCodeBlockFormatterException(this.offset, this.exception);
+
+  /// The offset in the source file to where the fenced code block starts.
+  final int offset;
+
+  /// The exception for the Dart code in the fenced code block.
+  final FormatterException exception;
 }

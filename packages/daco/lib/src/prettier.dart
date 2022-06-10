@@ -8,16 +8,26 @@ import 'package:path/path.dart' as p;
 import 'utils.dart';
 
 final _serverPath = packageRoot.then((dir) => p.join(dir, 'prettier-server'));
+final _lockFilePath = _serverPath.then((dir) => p.join(dir, 'lock'));
 final _nodeModulesPath = _serverPath.then((dir) => p.join(dir, 'node_modules'));
 final _serverEntrypoint =
     _serverPath.then((dir) => p.join(dir, 'dist/tsc-out/index.js'));
 
 Future<void> _preparePrettierServer() async {
-  if (Directory(await _nodeModulesPath).existsSync()) {
-    return;
-  }
+  // We use a lock file to ensure that the NPM package is only installed once.
+  final lockFile = await File(await _lockFilePath).open(mode: FileMode.write);
+  await lockFile.lock(FileLock.blockingExclusive);
 
-  await runProcess('npm', ['ci'], workingDirectory: await _serverPath);
+  try {
+    if (Directory(await _nodeModulesPath).existsSync()) {
+      return;
+    }
+
+    await runProcess('npm', ['ci'], workingDirectory: await _serverPath);
+  } finally {
+    await lockFile.unlock();
+    await lockFile.close();
+  }
 }
 
 /// How to handle wrapping in markdown text.

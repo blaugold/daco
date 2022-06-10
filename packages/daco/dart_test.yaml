@@ -1,0 +1,3 @@
+on_os:
+  windows:
+    timeout: 2x
