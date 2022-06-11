@@ -1,7 +1,9 @@
 import 'package:daco/src/formatter.dart';
+import 'package:daco/src/logging.dart';
 import 'package:daco/src/prettier.dart';
-import 'package:dart_style/dart_style.dart';
 import 'package:test/test.dart';
+
+import 'test_utils.dart';
 
 void main() {
   group('comments', () {
@@ -138,7 +140,7 @@ const a = 'a';
 /// ```
 ///
 /// ```dart
-///  const a = 'a';
+///  const b = 'b';
 /// ```
 const a = 'a';
 ''',
@@ -148,7 +150,7 @@ const a = 'a';
 /// ```
 ///
 /// ```dart
-/// const a = 'a';
+/// const b = 'b';
 /// ```
 const a = 'a';
 ''',
@@ -170,6 +172,32 @@ const a = 'a';
 /// const a =
 ///     'aaaaaaaaaaaaaa';
 /// ```
+const a = 'a';
+''',
+        ),
+      );
+
+      test(
+        'supports nested fenced code',
+        () => commentsFormattingTest(
+          input: '''
+/// 1. A
+///    ```dart
+///    const a =
+///       'a';
+///
+///    const b = 'b';
+///    ```
+const a = 'a';
+''',
+          output: '''
+/// 1. A
+///
+///    ```dart
+///    const a = 'a';
+///
+///    const b = 'b';
+///    ```
 const a = 'a';
 ''',
         ),
@@ -218,18 +246,17 @@ const a = 'a';
   });
 }
 
-final prettierService = PrettierService();
+final logger = TestLogger();
+final prettierService = PrettierService(logger: logger.toDacoLogger());
 
 Future<void> commentsFormattingTest({
   required String input,
   required String output,
   int lineLength = 80,
 }) async {
-  final dartFormatter = DartFormatter(pageWidth: lineLength);
-  final actual = await formatCommentsInSource(
-    input,
-    dartFormatter: dartFormatter,
+  final formatter = DacoFormatter(
     prettierService: prettierService,
+    lineLength: lineLength,
   );
-  expect(actual, output);
+  expect(await formatter.format(input), output);
 }

@@ -2,10 +2,14 @@
 
 import 'dart:io';
 
+import 'package:analyzer/source/line_info.dart';
+import 'package:ansi_styles/ansi_styles.dart';
 import 'package:dart_style/dart_style.dart';
+import 'package:path/path.dart' as p;
 
 import '../file_utils.dart';
 import '../formatter.dart';
+import '../logging.dart';
 import '../prettier.dart';
 import '../utils.dart';
 import 'daco_command.dart';
@@ -81,31 +85,31 @@ class FormatCommand extends DacoCommand {
         )
         .toList();
 
-    final prettierService = PrettierService();
+    final prettierService = PrettierService(logger: logger);
     await prettierService.start();
 
     try {
-      final dartFormatter = DartFormatter(
-        pageWidth: _lineLength,
+      final dartFormatter = DacoFormatter(
+        lineLength: _lineLength,
         fixes: _fix ? StyleFix.all : [],
+        prettierService: prettierService,
       );
 
       for (final file in files) {
-        final result = await formatFile(
+        final result = await _formatFile(
           file,
-          dartFormatter: dartFormatter,
-          prettierService: prettierService,
+          formatter: dartFormatter,
           logger: logger,
         );
         switch (result) {
-          case FormattingResult.unchanged:
+          case _FormattingResult.unchanged:
             break;
-          case FormattingResult.changed:
+          case _FormattingResult.changed:
             if (_setExistIfChanged && exitCode == 0) {
               exitCode = 1;
             }
             break;
-          case FormattingResult.failed:
+          case _FormattingResult.failed:
             exitCode = 2;
             break;
         }
@@ -113,5 +117,62 @@ class FormatCommand extends DacoCommand {
     } finally {
       await prettierService.stop();
     }
+  }
+}
+
+enum _FormattingResult {
+  unchanged,
+  changed,
+  failed,
+}
+
+Future<_FormattingResult> _formatFile(
+  File file, {
+  required DacoFormatter formatter,
+  required DacoLogger logger,
+}) async {
+  final relativePath = p.relative(file.path);
+  final source = await file.readAsString();
+  String formattedSource;
+  try {
+    formattedSource = await formatter.format(source, path: file.path);
+    // ignore: avoid_catches_without_on_clauses
+  } catch (exception) {
+    FormatterException? formatterException;
+    CharacterLocation? fencedCodeBlockLocation;
+
+    if (exception is FormatterException) {
+      formatterException = exception;
+    } else if (exception is FencedCodeBlockFormatterException) {
+      formatterException = exception.exception;
+      final lineInfo = LineInfo.fromContent(source);
+      fencedCodeBlockLocation = lineInfo.getLocation(exception.offset);
+    }
+
+    if (formatterException == null) {
+      rethrow;
+    }
+
+    logger.stderr('${AnsiStyles.red('FAILED')}    $relativePath');
+    if (fencedCodeBlockLocation != null) {
+      logger.stderr(
+        'in ${AnsiStyles.bold.underline('fenced code block')} at '
+        'line ${fencedCodeBlockLocation.lineNumber}, '
+        'column ${fencedCodeBlockLocation.columnNumber}:',
+      );
+    }
+    logger
+        .stderr(formatterException.message(color: stdout.supportsAnsiEscapes));
+
+    return _FormattingResult.failed;
+  }
+
+  if (formattedSource == source) {
+    logger.stdout(AnsiStyles.gray('UNCHANGED $relativePath'));
+    return _FormattingResult.unchanged;
+  } else {
+    logger.stdout('CHANGED   $relativePath');
+    await file.writeAsString(formattedSource);
+    return _FormattingResult.changed;
   }
 }

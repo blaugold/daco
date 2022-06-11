@@ -37,3 +37,5 @@ scripts:
     run: dart test -r expanded
     exec:
       concurrency: 1
+
+  build:prettier_server: cd packages/daco/prettier-server && npm run build
