@@ -14,7 +14,7 @@ final _dartDocTagRegExp = RegExp('{@.+}');
 final _dartDocTagWithSpacerRegExp = RegExp(r'({@.+})-+$', multiLine: true);
 
 final _fencedDartCodeRegExp =
-    RegExp(r'^(\S*)```dart([^\n]*)\n(((?!```)(.|\n))*)```', multiLine: true);
+    RegExp(r'^([ \t]*)```dart([^\n]*)\n(((?!```)(.|\n))*)```', multiLine: true);
 
 const _noFormatTag = 'no_format';
 
@@ -57,14 +57,22 @@ class DacoFormatter {
   Future<String> format(String source, {String? path}) async {
     source = _dartFormatter.formatSource(SourceCode(source, uri: path)).text;
 
-    return _formatCommentsInSource(source, path: path);
+    return _formatCommentsInSource(
+      source,
+      path: path,
+      lineLength: _dartFormatter.pageWidth,
+    );
   }
 
-  Future<String> _formatCommentsInSource(String source, {String? path}) =>
+  Future<String> _formatCommentsInSource(
+    String source, {
+    String? path,
+    required int lineLength,
+  }) =>
       processComments(
         source: source,
         path: path,
-        lineLength: _dartFormatter.pageWidth,
+        lineLength: lineLength,
         processor: (comment, lineLength, lineOffsets) async {
           _validateFencedDartCode(comment, lineOffsets);
           comment = await _formatMarkdown(comment, lineLength);
@@ -138,29 +146,37 @@ class DacoFormatter {
     }
   }
 
-  Future<String> _formatFencedDartCode(String source, int lineLength) async {
-    final dartFormatter = DartFormatter(pageWidth: lineLength, fixes: fixes);
+  Future<String> _formatFencedDartCode(String source, int lineLength) async =>
+      source.replaceAllMappedAsync(_fencedDartCodeRegExp, (match) async {
+        final indentation = match.group(1)!;
+        final rawTags = match.group(2)!;
+        final tags = _parseTags(rawTags);
 
-    return source.replaceAllMappedAsync(_fencedDartCodeRegExp, (match) async {
-      final indentation = match.group(1);
-      final rawTags = match.group(2)!;
-      final tags = _parseTags(rawTags);
+        if (tags.contains(_noFormatTag)) {
+          return match.group(0)!;
+        }
 
-      if (tags.contains(_noFormatTag)) {
-        return match.group(0)!;
-      }
+        var code = match.group(3)!;
 
-      var code = match.group(3)!;
+        final dartFormatter = DartFormatter(
+          pageWidth: lineLength - indentation.length,
+          fixes: fixes,
+        );
 
-      code = dartFormatter.format(code);
+        code = dartFormatter.format(code);
 
-      code = await _formatCommentsInSource(code);
+        code = await _formatCommentsInSource(
+          code,
+          lineLength: dartFormatter.pageWidth,
+        );
 
-      code = code.split('\n').map((line) => '$indentation$line').join('\n');
+        code = code
+            .split('\n')
+            .map((line) => line.isEmpty ? line : '$indentation$line')
+            .join('\n');
 
-      return '```dart$rawTags\n$code```';
-    });
-  }
+        return '$indentation```dart$rawTags\n$code$indentation```';
+      });
 }
 
 List<String> _parseTags(String tags) => tags

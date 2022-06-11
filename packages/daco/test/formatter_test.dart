@@ -140,7 +140,7 @@ const a = 'a';
 /// ```
 ///
 /// ```dart
-///  const a = 'a';
+///  const b = 'b';
 /// ```
 const a = 'a';
 ''',
@@ -150,7 +150,7 @@ const a = 'a';
 /// ```
 ///
 /// ```dart
-/// const a = 'a';
+/// const b = 'b';
 /// ```
 const a = 'a';
 ''',
@@ -178,19 +178,25 @@ const a = 'a';
       );
 
       test(
-        'handles nested fenced code',
+        'supports nested fenced code',
         () => commentsFormattingTest(
           input: '''
 /// 1. A
 ///    ```dart
-///    const a = 'a';
+///    const a =
+///       'a';
+///
+///    const b = 'b';
 ///    ```
 const a = 'a';
 ''',
           output: '''
 /// 1. A
+///
 ///    ```dart
 ///    const a = 'a';
+///
+///    const b = 'b';
 ///    ```
 const a = 'a';
 ''',
