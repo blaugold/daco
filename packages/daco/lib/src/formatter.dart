@@ -13,6 +13,7 @@ import 'package:path/path.dart' as p;
 import 'dart_comments.dart';
 import 'logging.dart';
 import 'prettier.dart';
+import 'utils.dart';
 
 /// The result of formatting a Dart source file.
 enum FormattingResult {
@@ -197,38 +198,28 @@ Future<String> _formatFencedDartCode(
   Set<StyleFix> fixes,
   PrettierService prettierService,
 ) async {
-  final rawTags = <String>[];
-  final parsedTags = <String, List<String>>{};
-  var fencedDartCodes = _fencedDartCodeRegExp.allMatches(source).map((match) {
-    final code = match.group(2)!;
-    rawTags.add(match.group(1)!);
-    parsedTags[code] = _parseTags(match.group(1)!);
-    return code;
-  }).toList();
-
   final dartFormatter = DartFormatter(pageWidth: lineLength, fixes: fixes);
 
-  fencedDartCodes = await Future.wait(
-    fencedDartCodes.map((code) async {
-      if (parsedTags[code]!.contains(_noFormatTag)) {
-        return code;
-      }
+  return source.replaceAllMappedAsync(_fencedDartCodeRegExp, (match) async {
+    final rawTags = match.group(1)!;
+    final tags = _parseTags(rawTags);
 
-      code = dartFormatter.format(code);
+    if (tags.contains(_noFormatTag)) {
+      return match.group(0)!;
+    }
 
-      return formatCommentsInSource(
-        code,
-        dartFormatter: dartFormatter,
-        prettierService: prettierService,
-      );
-    }),
-  );
+    var code = match.group(2)!;
 
-  var i = 0;
-  return source.replaceAllMapped(
-    _fencedDartCodeRegExp,
-    (match) => '```dart${rawTags[i]}\n${fencedDartCodes[i++]}```',
-  );
+    code = dartFormatter.format(code);
+
+    code = await formatCommentsInSource(
+      code,
+      dartFormatter: dartFormatter,
+      prettierService: prettierService,
+    );
+
+    return '```dart$rawTags\n$code```';
+  });
 }
 
 class _FencedCodeBlockFormatterException implements Exception {
