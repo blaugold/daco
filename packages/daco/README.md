@@ -8,6 +8,8 @@ A tool for maintaining **Da**rt **co**mments (daco).
 
 - [ ] Support standalone statements in embedded Dart code
 - [ ] Support formatting simple comments
+- [ ] Support disabling of formatting for a comment
+- [ ] Fix location of fenced code blocks in embedded Dart code
 
 ## Ideas
 
