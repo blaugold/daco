@@ -1,6 +1,5 @@
 import 'package:daco/src/formatter.dart';
 import 'package:daco/src/prettier.dart';
-import 'package:dart_style/dart_style.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -225,11 +224,9 @@ Future<void> commentsFormattingTest({
   required String output,
   int lineLength = 80,
 }) async {
-  final dartFormatter = DartFormatter(pageWidth: lineLength);
-  final actual = await formatCommentsInSource(
-    input,
-    dartFormatter: dartFormatter,
+  final formatter = DacoFormatter(
     prettierService: prettierService,
+    lineLength: lineLength,
   );
-  expect(actual, output);
+  expect(await formatter.format(input), output);
 }
