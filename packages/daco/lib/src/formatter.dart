@@ -14,7 +14,7 @@ final _dartDocTagRegExp = RegExp('{@.+}');
 final _dartDocTagWithSpacerRegExp = RegExp(r'({@.+})-+$', multiLine: true);
 
 final _fencedDartCodeRegExp =
-    RegExp(r'^([ \t]*)```dart([^\n]*)\n(((?!```)(.|\n))*)```', multiLine: true);
+    RegExp(r'^( *)```dart([^\n]*)\n(((?!```)(.|\n))*)```', multiLine: true);
 
 const _noFormatTag = 'no_format';
 
@@ -149,6 +149,7 @@ class DacoFormatter {
   Future<String> _formatFencedDartCode(String source, int lineLength) async =>
       source.replaceAllMappedAsync(_fencedDartCodeRegExp, (match) async {
         final indentation = match.group(1)!;
+        final blockLineLength = lineLength - indentation.length;
         final rawTags = match.group(2)!;
         final tags = _parseTags(rawTags);
 
@@ -159,7 +160,7 @@ class DacoFormatter {
         var code = match.group(3)!;
 
         final dartFormatter = DartFormatter(
-          pageWidth: lineLength - indentation.length,
+          pageWidth: blockLineLength,
           fixes: fixes,
         );
 
@@ -167,7 +168,7 @@ class DacoFormatter {
 
         code = await _formatCommentsInSource(
           code,
-          lineLength: dartFormatter.pageWidth,
+          lineLength: blockLineLength,
         );
 
         code = code
