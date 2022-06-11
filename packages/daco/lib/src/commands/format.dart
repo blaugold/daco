@@ -85,7 +85,7 @@ class FormatCommand extends DacoCommand {
         )
         .toList();
 
-    final prettierService = PrettierService();
+    final prettierService = PrettierService(logger: logger);
     await prettierService.start();
 
     try {

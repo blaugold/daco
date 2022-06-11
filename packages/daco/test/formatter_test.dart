@@ -1,6 +1,9 @@
 import 'package:daco/src/formatter.dart';
+import 'package:daco/src/logging.dart';
 import 'package:daco/src/prettier.dart';
 import 'package:test/test.dart';
+
+import 'test_utils.dart';
 
 void main() {
   group('comments', () {
@@ -237,7 +240,8 @@ const a = 'a';
   });
 }
 
-final prettierService = PrettierService();
+final logger = TestLogger();
+final prettierService = PrettierService(logger: logger.toDacoLogger());
 
 Future<void> commentsFormattingTest({
   required String input,
