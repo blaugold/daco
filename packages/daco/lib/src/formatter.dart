@@ -77,7 +77,7 @@ class DacoFormatter {
           comment,
           lineLength: formattedSource.availableLineLength(
             of: comment,
-            fullLineLength: lineLength,
+            lineLength: lineLength,
           ),
         );
       }),
@@ -138,7 +138,7 @@ class DacoFormatter {
           codeBlock,
           lineLength: formattedSource.availableLineLength(
             of: codeBlock,
-            fullLineLength: lineLength,
+            lineLength: lineLength,
           ),
         );
       }),

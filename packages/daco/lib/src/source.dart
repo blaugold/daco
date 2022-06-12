@@ -51,7 +51,10 @@ abstract class Source {
   /// [to] must enclose this source.
   int translateOffset(int offset, {Source? to});
 
-  int availableLineLength({required Source of, required int fullLineLength});
+  /// Returns the available number of characters for one [of] the
+  /// [enclosedSources], given the [lineLength] available for the enclosing
+  /// source (this).
+  int availableLineLength({required Source of, required int lineLength});
 
   /// Returns this source's [text] where [replacements] is a mapping of
   /// [Source]s to new texts to replace them with.
@@ -213,7 +216,7 @@ class _DartSourceImpl extends _AbstractSource implements DartSource {
   List<Source> enclosedSources() => documentationComments();
 
   @override
-  int availableLineLength({required Source of, required int fullLineLength}) {
+  int availableLineLength({required Source of, required int lineLength}) {
     assert(of is MarkdownSource);
 
     if (!enclosedSources().contains(of)) {
@@ -225,7 +228,7 @@ class _DartSourceImpl extends _AbstractSource implements DartSource {
     }
 
     const commentPrefix = 4; // '/// '
-    return fullLineLength -
+    return lineLength -
         (_commentIndentation(_documentationCommentAstNodes[of]!) +
             commentPrefix);
   }
@@ -372,7 +375,7 @@ class _MarkdownSourceImpl extends _AbstractSource implements MarkdownSource {
   List<Source> enclosedSources() => dartCodeBlocks();
 
   @override
-  int availableLineLength({required Source of, required int fullLineLength}) {
+  int availableLineLength({required Source of, required int lineLength}) {
     assert(of is DartSource);
 
     if (!enclosedSources().contains(of)) {
@@ -384,7 +387,7 @@ class _MarkdownSourceImpl extends _AbstractSource implements MarkdownSource {
     }
 
     final indentation = _dartCodeBlockMatches[of]!.group(1)!;
-    return fullLineLength - indentation.length;
+    return lineLength - indentation.length;
   }
 
   @override
