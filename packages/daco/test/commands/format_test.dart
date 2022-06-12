@@ -87,13 +87,12 @@ const a = 'a';
       logger.output,
       '''
 FAILED    ${p.relative(file.path)}
-in fenced code block at line 1, column 5:
 Could not format because the source could not be parsed:
 
-line 1, column 11 of fenced code block: Expected to find ';'.
+line 2, column 15 of ${p.prettyUri(file.path)}: Expected to find ';'.
   ╷
-1 │ const a = 'a'
-  │           ^^^
+2 │ /// const a = 'a'
+  │               ^^^
   ╵
 ''',
     );

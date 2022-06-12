@@ -1,35 +1,17 @@
 // ignore_for_file: parameter_assignments
 
-import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:collection/collection.dart';
 import 'package:dart_style/dart_style.dart';
 
-import 'dart_comments.dart';
 import 'prettier.dart';
-import 'utils.dart';
+import 'source.dart';
 
 final _dartDocTagRegExp = RegExp('{@.+}');
 final _dartDocTagWithSpacerRegExp = RegExp(r'({@.+})-+$', multiLine: true);
 
-final _fencedDartCodeRegExp =
-    RegExp(r'^( *)```dart([^\n]*)\n(((?!```)(.|\n))*)```', multiLine: true);
-
 const _noFormatTag = 'no_format';
-
-/// Exception thrown when an error occurs while formatting a fenced code block.
-class FencedCodeBlockFormatterException implements Exception {
-  /// Creates an exception thrown when an error occurs while formatting a fenced
-  /// code block.
-  FencedCodeBlockFormatterException(this.offset, this.exception);
-
-  /// The offset in the source file to where the fenced code block starts.
-  final int offset;
-
-  /// The exception for the Dart code in the fenced code block.
-  final FormatterException exception;
-}
 
 /// Formatter which formats Dart code, including comments.
 class DacoFormatter {
@@ -38,8 +20,7 @@ class DacoFormatter {
     this.lineLength = 80,
     Iterable<StyleFix>? fixes,
     required this.prettierService,
-  })  : fixes = {...?fixes},
-        _dartFormatter = DartFormatter(pageWidth: lineLength, fixes: fixes);
+  }) : fixes = {...?fixes};
 
   /// The maximum length of a line of code.
   final int lineLength;
@@ -50,42 +31,68 @@ class DacoFormatter {
   /// The [PrettierService] to use to format markdown.
   final PrettierService prettierService;
 
-  final DartFormatter _dartFormatter;
-
   /// Formats the given [source] string containing an entire Dart compilation
   /// unit.
   Future<String> format(String source, {String? path}) async {
-    source = _dartFormatter.formatSource(SourceCode(source, uri: path)).text;
-
-    return _formatCommentsInSource(
-      source,
-      path: path,
-      lineLength: _dartFormatter.pageWidth,
-    );
+    final rootSource = DartSource(text: source, uri: path);
+    _checkForDartParseErrors(rootSource);
+    return _formatDartSource(rootSource, lineLength: lineLength);
   }
 
-  Future<String> _formatCommentsInSource(
-    String source, {
-    String? path,
-    required int lineLength,
-  }) =>
-      processComments(
-        source: source,
-        path: path,
-        lineLength: lineLength,
-        processor: (comment, lineLength, lineOffsets) async {
-          _validateFencedDartCode(comment, lineOffsets);
-          comment = await _formatMarkdown(comment, lineLength);
-          return _formatFencedDartCode(comment, lineLength);
-        },
-      );
+  void _checkForDartParseErrors(DartSource source) {
+    final errors = <AnalysisError>[];
+    final sources = <DartSource>[source];
 
-  Future<String> _formatMarkdown(
-    String source,
-    int lineLength,
-  ) async {
-    final lineInfo = LineInfo.fromContent(source);
-    final tagMatches = _dartDocTagRegExp.allMatches(source);
+    while (sources.isNotEmpty) {
+      final source = sources.removeAt(0);
+
+      final syntacticErrors = source
+          .analysisErrors()
+          .where((error) => error.errorCode.type == ErrorType.SYNTACTIC_ERROR);
+      errors.addAll(syntacticErrors);
+
+      final enclosedDartSources = source
+          .documentationComments()
+          .expand((comment) => comment.dartCodeBlocks());
+      sources.addAll(enclosedDartSources);
+    }
+
+    if (errors.isNotEmpty) {
+      throw FormatterException(errors);
+    }
+  }
+
+  Future<String> _formatDartSource(
+    DartSource source, {
+    required int lineLength,
+  }) async {
+    final formatter = DartFormatter(pageWidth: lineLength, fixes: fixes);
+    final formattedText = formatter.format(source.text);
+    final formattedSource = DartSource(text: formattedText);
+    final formattedComments = <MarkdownSource, String>{};
+
+    await Future.wait(
+      formattedSource.documentationComments().map((comment) async {
+        formattedComments[comment] = await _formatMarkdownSource(
+          comment,
+          lineLength: formattedSource.availableLineLength(
+            of: comment,
+            lineLength: lineLength,
+          ),
+        );
+      }),
+    );
+
+    return formattedSource.replaceEnclosedSources(formattedComments);
+  }
+
+  Future<String> _formatMarkdownSource(
+    MarkdownSource source, {
+    required int lineLength,
+  }) async {
+    var text = source.text;
+    final lineInfo = LineInfo.fromContent(text);
+    final tagMatches = _dartDocTagRegExp.allMatches(text);
     final tagLines = <int>{};
     for (final match in tagMatches) {
       final startLine = lineInfo.getLocation(match.start).lineNumber;
@@ -96,7 +103,7 @@ class DacoFormatter {
       }
     }
 
-    source = source
+    text = text
         .split('\n')
         .mapIndexed(
           (index, line) =>
@@ -104,84 +111,39 @@ class DacoFormatter {
         )
         .join('\n');
 
-    source = await prettierService.format(
-      source,
+    text = await prettierService.format(
+      text,
       parser: 'markdown',
       printWidth: lineLength,
       proseWrap: ProseWrap.always,
     );
 
-    return source.replaceAllMapped(
+    text = text.replaceAllMapped(
       _dartDocTagWithSpacerRegExp,
       (match) => match.group(1)!,
     );
-  }
 
-  void _validateFencedDartCode(String source, List<int> lineOffsets) {
-    for (final match in _fencedDartCodeRegExp.allMatches(source)) {
-      final tags = _parseTags(match.group(2)!);
-      if (tags.contains(_noFormatTag)) {
-        continue;
-      }
+    final formattedSource = MarkdownSource(text: text);
+    final formattedCodeBlocks = <DartSource, String>{};
 
-      final dartSource = match.group(3)!;
-      final parseResult = parseString(
-        content: dartSource,
-        throwIfDiagnostics: false,
-        path: 'fenced code block',
-      );
-      final syntacticErrors = parseResult.errors
-          .where((error) => error.errorCode.type == ErrorType.SYNTACTIC_ERROR)
-          .toList();
-      if (syntacticErrors.isNotEmpty) {
-        final lineInfo = LineInfo.fromContent(source);
-        final location = lineInfo.getLocation(match.start);
-        final offsetInSource =
-            lineOffsets[location.lineNumber - 1] + location.columnNumber - 1;
-        throw FencedCodeBlockFormatterException(
-          offsetInSource,
-          FormatterException(parseResult.errors),
-        );
-      }
-    }
-  }
-
-  Future<String> _formatFencedDartCode(String source, int lineLength) async =>
-      source.replaceAllMappedAsync(_fencedDartCodeRegExp, (match) async {
-        final indentation = match.group(1)!;
-        final blockLineLength = lineLength - indentation.length;
-        final rawTags = match.group(2)!;
-        final tags = _parseTags(rawTags);
-
-        if (tags.contains(_noFormatTag)) {
-          return match.group(0)!;
+    await Future.wait(
+      formattedSource.dartCodeBlocks().map((codeBlock) async {
+        if (formattedSource
+            .codeBlockTags(of: codeBlock)
+            .contains(_noFormatTag)) {
+          return;
         }
 
-        var code = match.group(3)!;
-
-        final dartFormatter = DartFormatter(
-          pageWidth: blockLineLength,
-          fixes: fixes,
+        formattedCodeBlocks[codeBlock] = await _formatDartSource(
+          codeBlock,
+          lineLength: formattedSource.availableLineLength(
+            of: codeBlock,
+            lineLength: lineLength,
+          ),
         );
+      }),
+    );
 
-        code = dartFormatter.format(code);
-
-        code = await _formatCommentsInSource(
-          code,
-          lineLength: blockLineLength,
-        );
-
-        code = code
-            .split('\n')
-            .map((line) => line.isEmpty ? line : '$indentation$line')
-            .join('\n');
-
-        return '$indentation```dart$rawTags\n$code$indentation```';
-      });
+    return formattedSource.replaceEnclosedSources(formattedCodeBlocks);
+  }
 }
-
-List<String> _parseTags(String tags) => tags
-    .split(' ')
-    .map((tag) => tag.trim())
-    .whereNot((tag) => tag.isEmpty)
-    .toList();

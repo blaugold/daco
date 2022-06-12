@@ -30,7 +30,7 @@ scripts:
 
   analyze:
     description: Analyzes Dart packages in the repository.
-    exec: dart analyze --fata-infos --fata-warnings
+    exec: dart analyze --fatal-infos --fatal-warnings
 
   test:
     description: Runs tests.
