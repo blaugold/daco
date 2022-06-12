@@ -33,6 +33,9 @@ abstract class Source {
   /// The text of this source.
   String get text;
 
+  /// The [LineInfo] for this source's [text].
+  LineInfo get lineInfo;
+
   /// The document which contains this source.
   Document get document;
 
@@ -142,7 +145,8 @@ abstract class _AbstractSource extends Source {
   final List<int>? _lineStartOffsets;
 
   /// The [LineInfo] for [text].
-  late final _lineInfo = _provideLineInfo();
+  @override
+  late final lineInfo = _provideLineInfo();
 
   LineInfo _provideLineInfo() => LineInfo.fromContent(text);
 
@@ -155,7 +159,7 @@ abstract class _AbstractSource extends Source {
     }
 
     if (targetSource == enclosingSource) {
-      final location = _lineInfo.getLocation(offset);
+      final location = lineInfo.getLocation(offset);
       return _lineStartOffsets![location.lineNumber - 1] +
           (location.columnNumber - 1);
     }
@@ -210,7 +214,7 @@ class _DartSourceImpl extends _AbstractSource implements DartSource {
   LineInfo _provideLineInfo() => _parsedStringResult.lineInfo;
 
   int _commentIndentation(Comment comment) =>
-      _lineInfo.getLocation(comment.offset).columnNumber - 1;
+      lineInfo.getLocation(comment.offset).columnNumber - 1;
 
   @override
   List<Source> enclosedSources() => documentationComments();
@@ -402,7 +406,6 @@ class _MarkdownSourceImpl extends _AbstractSource implements MarkdownSource {
       final tags = match.group(2)!;
       final code = match.group(3)!;
 
-      final lineInfo = _lineInfo;
       // LineInfo returns one-based line numbers and since the code starts
       // on the line after the ```, we need don't need to subtract 1 from
       // `lineNumber`.
