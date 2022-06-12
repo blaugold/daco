@@ -2,7 +2,6 @@
 
 import 'dart:io';
 
-import 'package:analyzer/source/line_info.dart';
 import 'package:ansi_styles/ansi_styles.dart';
 import 'package:dart_style/dart_style.dart';
 import 'package:path/path.dart' as p;
@@ -136,33 +135,10 @@ Future<_FormattingResult> _formatFile(
   String formattedSource;
   try {
     formattedSource = await formatter.format(source, path: file.path);
-    // ignore: avoid_catches_without_on_clauses
-  } catch (exception) {
-    FormatterException? formatterException;
-    CharacterLocation? fencedCodeBlockLocation;
-
-    if (exception is FormatterException) {
-      formatterException = exception;
-    } else if (exception is FencedCodeBlockFormatterException) {
-      formatterException = exception.exception;
-      final lineInfo = LineInfo.fromContent(source);
-      fencedCodeBlockLocation = lineInfo.getLocation(exception.offset);
-    }
-
-    if (formatterException == null) {
-      rethrow;
-    }
-
-    logger.stderr('${AnsiStyles.red('FAILED')}    $relativePath');
-    if (fencedCodeBlockLocation != null) {
-      logger.stderr(
-        'in ${AnsiStyles.bold.underline('fenced code block')} at '
-        'line ${fencedCodeBlockLocation.lineNumber}, '
-        'column ${fencedCodeBlockLocation.columnNumber}:',
-      );
-    }
+  } on FormatterException catch (exception) {
     logger
-        .stderr(formatterException.message(color: stdout.supportsAnsiEscapes));
+      ..stderr('${AnsiStyles.red('FAILED')}    $relativePath')
+      ..stderr(exception.message(color: stdout.supportsAnsiEscapes));
 
     return _FormattingResult.failed;
   }
