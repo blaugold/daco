@@ -1,7 +1,6 @@
 // ignore_for_file: parameter_assignments
 
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/source/line_info.dart';
 import 'package:collection/collection.dart';
 import 'package:dart_style/dart_style.dart';
 
@@ -90,40 +89,8 @@ class DacoFormatter {
     MarkdownSource source, {
     required int lineLength,
   }) async {
-    var text = source.text;
-    final lineInfo = LineInfo.fromContent(text);
-    final tagMatches = _dartDocTagRegExp.allMatches(text);
-    final tagLines = <int>{};
-    for (final match in tagMatches) {
-      final startLine = lineInfo.getLocation(match.start).lineNumber;
-      final endLine = lineInfo.getLocation(match.end).lineNumber;
-      for (var line = startLine; line <= endLine; line++) {
-        // LineInfo returns 1-based line numbers, but we want 0-based.
-        tagLines.add(line - 1);
-      }
-    }
-
-    text = text
-        .split('\n')
-        .mapIndexed(
-          (index, line) =>
-              tagLines.contains(index) ? line.padRight(lineLength, '-') : line,
-        )
-        .join('\n');
-
-    text = await prettierService.format(
-      text,
-      parser: 'markdown',
-      printWidth: lineLength,
-      proseWrap: ProseWrap.always,
-    );
-
-    text = text.replaceAllMapped(
-      _dartDocTagWithSpacerRegExp,
-      (match) => match.group(1)!,
-    );
-
-    final formattedSource = MarkdownSource(text: text);
+    final formattedText = await _formatMarkdown(source, lineLength);
+    final formattedSource = MarkdownSource(text: formattedText);
     final formattedCodeBlocks = <DartSource, String>{};
 
     await Future.wait(
@@ -145,5 +112,39 @@ class DacoFormatter {
     );
 
     return formattedSource.replaceEnclosedSources(formattedCodeBlocks);
+  }
+
+  Future<String> _formatMarkdown(Source source, int lineLength) async {
+    var text = source.text;
+    final tagMatches = _dartDocTagRegExp.allMatches(text);
+    final tagLines = <int>{};
+    for (final match in tagMatches) {
+      final startLine = source.lineInfo.getLocation(match.start).lineNumber;
+      final endLine = source.lineInfo.getLocation(match.end).lineNumber;
+      for (var line = startLine; line <= endLine; line++) {
+        // LineInfo returns 1-based line numbers, but we want 0-based.
+        tagLines.add(line - 1);
+      }
+    }
+
+    text = text
+        .split('\n')
+        .mapIndexed(
+          (index, line) =>
+              tagLines.contains(index) ? line.padRight(lineLength, '-') : line,
+        )
+        .join('\n');
+
+    text = await prettierService.format(
+      text,
+      parser: 'markdown',
+      printWidth: lineLength,
+      proseWrap: ProseWrap.always,
+    );
+
+    return text.replaceAllMapped(
+      _dartDocTagWithSpacerRegExp,
+      (match) => match.group(1)!,
+    );
   }
 }
