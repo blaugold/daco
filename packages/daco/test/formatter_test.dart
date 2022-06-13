@@ -242,6 +242,24 @@ const a = 'a';
 ''',
         ),
       );
+
+      test(
+        'do not parse code tagged with no_format',
+        () => commentsFormattingTest(
+          input: '''
+/// ```dart no_format
+/// a
+/// ```
+const a = 'a';
+''',
+          output: '''
+/// ```dart no_format
+/// a
+/// ```
+const a = 'a';
+''',
+        ),
+      );
     });
   });
 }
