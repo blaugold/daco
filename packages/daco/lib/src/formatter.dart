@@ -50,9 +50,13 @@ class DacoFormatter {
           .where((error) => error.errorCode.type == ErrorType.SYNTACTIC_ERROR);
       errors.addAll(syntacticErrors);
 
-      final enclosedDartSources = source
-          .documentationComments()
-          .expand((comment) => comment.dartCodeBlocks());
+      final enclosedDartSources = source.documentationComments().expand(
+            (comment) => comment.dartCodeBlocks().whereNot(
+                  (codeBlock) => comment
+                      .codeBlockTags(of: codeBlock)
+                      .contains(_noFormatTag),
+                ),
+          );
       sources.addAll(enclosedDartSources);
     }
 
