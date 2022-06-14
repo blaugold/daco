@@ -55,7 +55,7 @@ class DacoFormatter {
       final enclosedDartSources = source.documentationComments().expand(
             (comment) => comment
                 .dartCodeBlocks()
-                .where((codeBlock) => codeBlock.shouldBeFormatted)
+                .whereNot((codeBlock) => codeBlock.isIgnored)
                 .map((codeBlock) {
               if (codeBlock.isInMainFunction) {
                 return DartSource.composed([
@@ -143,7 +143,7 @@ class DacoFormatter {
 
     await Future.wait(
       formattedSource.dartCodeBlocks().map((codeBlock) async {
-        if (!codeBlock.shouldBeFormatted) {
+        if (codeBlock.isIgnored) {
           return;
         }
 

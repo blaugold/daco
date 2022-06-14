@@ -225,19 +225,19 @@ const a = 'a';
         ),
       );
 
-      group('no_format attribute', () {
+      group('ignore attribute', () {
         test(
           'do not format code',
           () => expectFormatterOutput(
             input: '''
-/// ```dart no_format
+/// ```dart ignore
 /// /// a  a
 /// const a = 'a';
 /// ```
 const a = 'a';
 ''',
             output: '''
-/// ```dart no_format
+/// ```dart ignore
 /// /// a  a
 /// const a = 'a';
 /// ```
@@ -250,13 +250,13 @@ const a = 'a';
           'do not parse code',
           () => expectFormatterOutput(
             input: '''
-/// ```dart no_format
+/// ```dart ignore
 /// a
 /// ```
 const a = 'a';
 ''',
             output: '''
-/// ```dart no_format
+/// ```dart ignore
 /// a
 /// ```
 const a = 'a';
