@@ -4,13 +4,12 @@ import 'package:analyzer/error/error.dart';
 import 'package:collection/collection.dart';
 import 'package:dart_style/dart_style.dart';
 
+import 'code_block_attribute.dart';
 import 'prettier.dart';
 import 'source.dart';
 
 final _dartDocTagRegExp = RegExp('{@.+}');
 final _dartDocTagWithSpacerRegExp = RegExp(r'({@.+})-+$', multiLine: true);
-
-const _noFormatTag = 'no_format';
 
 /// Formatter which formats Dart code, including comments.
 class DacoFormatter {
@@ -51,11 +50,9 @@ class DacoFormatter {
       errors.addAll(syntacticErrors);
 
       final enclosedDartSources = source.documentationComments().expand(
-            (comment) => comment.dartCodeBlocks().whereNot(
-                  (codeBlock) => comment
-                      .codeBlockTags(of: codeBlock)
-                      .contains(_noFormatTag),
-                ),
+            (comment) => comment
+                .dartCodeBlocks()
+                .where((codeBlock) => codeBlock.shouldBeFormatted),
           );
       sources.addAll(enclosedDartSources);
     }
@@ -99,9 +96,7 @@ class DacoFormatter {
 
     await Future.wait(
       formattedSource.dartCodeBlocks().map((codeBlock) async {
-        if (formattedSource
-            .codeBlockTags(of: codeBlock)
-            .contains(_noFormatTag)) {
+        if (!codeBlock.shouldBeFormatted) {
           return;
         }
 

@@ -90,8 +90,8 @@ abstract class MarkdownSource extends Source {
   /// Computes the [DartSource]s of fenced code blocks in this source.
   List<DartSource> dartCodeBlocks();
 
-  /// Returns the tags [of] one of the enclosed [dartCodeBlocks].
-  List<String> codeBlockTags({required Source of});
+  /// Returns the info line [of] one of the enclosed [dartCodeBlocks].
+  String infoLine({required Source of});
 }
 
 class _DocumentImpl extends Document {
@@ -197,21 +197,21 @@ class _DartSourceImpl extends _AbstractSource implements DartSource {
 
   _DartSourceImpl.root({required super.text, super.uri}) : super.root();
 
-  late final _parsedStringResult = parseString(
+  late final _parseResult = parseString(
     content: text,
     path: document.uri,
     throwIfDiagnostics: false,
   );
 
   late final _analysisErrors =
-      _parsedStringResult.errors.map(_translateAnalysisError).toList();
+      _parseResult.errors.map(_translateAnalysisError).toList();
 
   late final _documentationComments = _collectDocumentationComments();
 
   final _documentationCommentAstNodes = <MarkdownSource, Comment>{};
 
   @override
-  LineInfo _provideLineInfo() => _parsedStringResult.lineInfo;
+  LineInfo _provideLineInfo() => _parseResult.lineInfo;
 
   int _commentIndentation(Comment comment) =>
       lineInfo.getLocation(comment.offset).columnNumber - 1;
@@ -242,7 +242,7 @@ class _DartSourceImpl extends _AbstractSource implements DartSource {
 
   List<MarkdownSource> _collectDocumentationComments() {
     final collector = _CommentCollector();
-    _parsedStringResult.unit.accept(collector);
+    _parseResult.unit.accept(collector);
     final comments = collector.comments;
 
     return comments.map((comment) {
@@ -360,7 +360,7 @@ class _CommentCollector extends RecursiveAstVisitor<void> {
 }
 
 final _fencedDartCodeRegExp =
-    RegExp(r'^( *)```dart([^\n]*)\n(((?!```)(.|\n))*)```', multiLine: true);
+    RegExp(r'^( *)```(dart[^\n]*)\n(((?!```)(.|\n))*)```', multiLine: true);
 
 class _MarkdownSourceImpl extends _AbstractSource implements MarkdownSource {
   _MarkdownSourceImpl({
@@ -373,7 +373,7 @@ class _MarkdownSourceImpl extends _AbstractSource implements MarkdownSource {
 
   late final _dartCodeBlocks = _parseDartCodeBlocks();
   final _dartCodeBlockMatches = <DartSource, RegExpMatch>{};
-  final _dartCodeBlockTags = <DartSource, List<String>>{};
+  final _dartCodeBlockInfoLine = <DartSource, String>{};
 
   @override
   List<Source> enclosedSources() => dartCodeBlocks();
@@ -403,7 +403,7 @@ class _MarkdownSourceImpl extends _AbstractSource implements MarkdownSource {
 
     for (final match in matches) {
       final indentation = match.group(1)!.length;
-      final tags = match.group(2)!;
+      final infoLine = match.group(2)!;
       final code = match.group(3)!;
 
       // LineInfo returns one-based line numbers and since the code starts
@@ -441,20 +441,14 @@ class _MarkdownSourceImpl extends _AbstractSource implements MarkdownSource {
       dartCodeBlocks.add(source);
 
       _dartCodeBlockMatches[source] = match;
-      _dartCodeBlockTags[source] = _parseTags(tags);
+      _dartCodeBlockInfoLine[source] = infoLine;
     }
 
     return dartCodeBlocks;
   }
 
-  List<String> _parseTags(String tags) => tags
-      .split(' ')
-      .map((tag) => tag.trim())
-      .whereNot((tag) => tag.isEmpty)
-      .toList();
-
   @override
-  List<String> codeBlockTags({required Source of}) {
+  String infoLine({required Source of}) {
     if (!dartCodeBlocks().contains(of)) {
       throw ArgumentError.value(
         of,
@@ -463,7 +457,7 @@ class _MarkdownSourceImpl extends _AbstractSource implements MarkdownSource {
       );
     }
 
-    return _dartCodeBlockTags[of]!;
+    return _dartCodeBlockInfoLine[of]!;
   }
 
   @override
@@ -487,7 +481,7 @@ class _MarkdownSourceImpl extends _AbstractSource implements MarkdownSource {
       final replacement = entry.value;
 
       final indentation = ' ' * match.group(1)!.length;
-      final tags = match.group(2)!;
+      final infoLine = match.group(2)!;
 
       final lines = replacement.split('\n');
       if (lines.length > 1 && lines.last.isEmpty) {
@@ -497,8 +491,8 @@ class _MarkdownSourceImpl extends _AbstractSource implements MarkdownSource {
       buffer
         ..write(text.substring(lastMatch?.end ?? 0, match.start))
         ..write(indentation)
-        ..write('```dart')
-        ..write(tags)
+        ..write('```')
+        ..write(infoLine)
         ..writeln();
 
       lines.forEachIndexed((index, line) {
