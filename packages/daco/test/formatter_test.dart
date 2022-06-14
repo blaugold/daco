@@ -313,6 +313,24 @@ const a = 'a';
 ''',
           ),
         );
+
+        test(
+          'end of line comment in main',
+          () => expectFormatterOutput(
+            input: '''
+/// ```dart main
+/// // ...
+/// ```
+const a = 'a';
+''',
+            output: '''
+/// ```dart main
+/// // ...
+/// ```
+const a = 'a';
+''',
+          ),
+        );
       });
     });
   });
