@@ -1,6 +1,8 @@
+import 'package:analyzer/error/error.dart';
 import 'package:daco/src/formatter.dart';
 import 'package:daco/src/logging.dart';
 import 'package:daco/src/prettier.dart';
+import 'package:dart_style/dart_style.dart';
 import 'package:test/test.dart';
 
 import 'test_utils.dart';
@@ -12,7 +14,7 @@ void main() {
 
     test(
       'single line comment',
-      () => commentsFormattingTest(
+      () => expectFormatterOutput(
         input: '''
 /// a  a
 const a = 'a';
@@ -26,7 +28,7 @@ const a = 'a';
 
     test(
       'multi line comment',
-      () => commentsFormattingTest(
+      () => expectFormatterOutput(
         input: '''
 /// a  a
 ///
@@ -45,7 +47,7 @@ const a = 'a';
     group('dart doc tags', () {
       test(
         'single instance before paragraph',
-        () => commentsFormattingTest(
+        () => expectFormatterOutput(
           input: '''
 /// {@a}
 /// a
@@ -61,7 +63,7 @@ const a = 'a';
 
       test(
         'single instance after paragraph',
-        () => commentsFormattingTest(
+        () => expectFormatterOutput(
           input: '''
 /// a
 /// {@a}
@@ -77,7 +79,7 @@ const a = 'a';
 
       test(
         'multiple instances before paragraph',
-        () => commentsFormattingTest(
+        () => expectFormatterOutput(
           input: '''
 /// {@a}
 /// {@a}
@@ -95,7 +97,7 @@ const a = 'a';
 
       test(
         'multiple instances after paragraph',
-        () => commentsFormattingTest(
+        () => expectFormatterOutput(
           input: '''
 /// a
 /// {@a}
@@ -115,7 +117,7 @@ const a = 'a';
     group('embedded Dart code', () {
       test(
         'single instance of fenced code',
-        () => commentsFormattingTest(
+        () => expectFormatterOutput(
           input: '''
 /// ```dart
 ///  const a = 'a';
@@ -133,7 +135,7 @@ const a = 'a';
 
       test(
         'multiple instances of fenced code',
-        () => commentsFormattingTest(
+        () => expectFormatterOutput(
           input: '''
 /// ```dart
 ///  const a = 'a';
@@ -159,7 +161,7 @@ const a = 'a';
 
       test(
         'fenced code is formatted to correct length',
-        () => commentsFormattingTest(
+        () => expectFormatterOutput(
           lineLength: 30,
           input: '''
 /// ```dart
@@ -179,7 +181,7 @@ const a = 'a';
 
       test(
         'supports nested fenced code',
-        () => commentsFormattingTest(
+        () => expectFormatterOutput(
           input: '''
 /// 1. A
 ///    ```dart
@@ -205,7 +207,7 @@ const a = 'a';
 
       test(
         'comments are formatted',
-        () => commentsFormattingTest(
+        () => expectFormatterOutput(
           input: '''
 /// ```dart
 /// /// a  a
@@ -223,43 +225,95 @@ const a = 'a';
         ),
       );
 
-      test(
-        'do not format code tagged with no_format',
-        () => commentsFormattingTest(
-          input: '''
+      group('no_format attribute', () {
+        test(
+          'do not format code',
+          () => expectFormatterOutput(
+            input: '''
 /// ```dart no_format
 /// /// a  a
 /// const a = 'a';
 /// ```
 const a = 'a';
 ''',
-          output: '''
+            output: '''
 /// ```dart no_format
 /// /// a  a
 /// const a = 'a';
 /// ```
 const a = 'a';
 ''',
-        ),
-      );
+          ),
+        );
 
-      test(
-        'do not parse code tagged with no_format',
-        () => commentsFormattingTest(
-          input: '''
+        test(
+          'do not parse code',
+          () => expectFormatterOutput(
+            input: '''
 /// ```dart no_format
 /// a
 /// ```
 const a = 'a';
 ''',
-          output: '''
+            output: '''
 /// ```dart no_format
 /// a
 /// ```
 const a = 'a';
 ''',
-        ),
-      );
+          ),
+        );
+      });
+
+      group('attribute main', () {
+        test(
+          'check code for syntactic errors',
+          () => expectSyntacticErrorAt(
+            input: '''
+/// ```dart main
+/// const a = 'a'
+/// ```
+const a = 'a';
+''',
+            offset: 31,
+          ),
+        );
+
+        test(
+          'handle empty code block',
+          () => expectFormatterOutput(
+            input: '''
+/// ```dart main
+/// ```
+const a = 'a';
+''',
+            output: '''
+/// ```dart main
+/// ```
+const a = 'a';
+''',
+          ),
+        );
+
+        test(
+          'format code as part of a function',
+          () => expectFormatterOutput(
+            input: '''
+/// ```dart main
+/// const a =
+///   'a';
+/// ```
+const a = 'a';
+''',
+            output: '''
+/// ```dart main
+/// const a = 'a';
+/// ```
+const a = 'a';
+''',
+          ),
+        );
+      });
     });
   });
 }
@@ -267,14 +321,49 @@ const a = 'a';
 final logger = TestLogger();
 final prettierService = PrettierService(logger: logger.toDacoLogger());
 
-Future<void> commentsFormattingTest({
+Future<String> testFormat({
   required String input,
-  required String output,
   int lineLength = 80,
 }) async {
   final formatter = DacoFormatter(
     prettierService: prettierService,
     lineLength: lineLength,
   );
-  expect(await formatter.format(input), output);
+  return formatter.format(input);
+}
+
+Future<void> expectFormatterOutput({
+  required String input,
+  required String output,
+  int lineLength = 80,
+}) async {
+  expect(await testFormat(input: input, lineLength: lineLength), output);
+}
+
+Future<void> expectSyntacticErrorAt({
+  required String input,
+  int? offset,
+}) async {
+  expect(
+    () => testFormat(input: input),
+    throwsA(
+      isA<FormatterException>().having(
+        (error) => error.errors,
+        'errors',
+        contains(
+          isA<AnalysisError>()
+              .having(
+                (error) => error.errorCode.type,
+                'errorCode.type',
+                ErrorType.SYNTACTIC_ERROR,
+              )
+              .having(
+                (error) => error.offset,
+                'offset',
+                offset ?? anything,
+              ),
+        ),
+      ),
+    ),
+  );
 }

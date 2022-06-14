@@ -52,4 +52,8 @@ extension CodeBlockAttributeSourceExt on DartSource {
   /// Whether this source should be formatted.
   bool get shouldBeFormatted =>
       !codeBlockAttributes.contains(CodeBlockAttribute.noFormat);
+
+  /// Whether this source contains code for the body of the `main` function.
+  bool get isInMainFunction =>
+      codeBlockAttributes.contains(CodeBlockAttribute.main);
 }
