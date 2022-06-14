@@ -42,9 +42,32 @@ class PrettierService {
   int _nextRequestId = 0;
   int _pendingRequests = 0;
 
+  /// Installs the prettier server if it is not already installed.
+  Future<void> installPrettierServer() async {
+    // We use a lock file to ensure that the NPM package is only installed once.
+    final lockFile = await File(await _lockFilePath).open(mode: FileMode.write);
+    await lockFile.lock(FileLock.blockingExclusive);
+
+    try {
+      if (Directory(await _nodeModulesPath).existsSync()) {
+        if (_logger.isVerbose) {
+          _logger.trace('prettier server is already installed.');
+        }
+        return;
+      }
+
+      _logger.stdout('Installing prettier server...');
+      await runProcess('npm', ['ci'], workingDirectory: await _serverPath);
+      _logger.stdout('prettier server installed.');
+    } finally {
+      await lockFile.unlock();
+      await lockFile.close();
+    }
+  }
+
   /// Starts the server process and completes when it is ready.
   Future<void> start() async {
-    await _preparePrettierServer();
+    await installPrettierServer();
 
     if (_logger.isVerbose) {
       _logger.trace('Starting prettier server...');
@@ -186,27 +209,5 @@ class PrettierService {
 
     final body = jsonDecode(response.body) as Map<String, Object?>;
     return body['result']! as String;
-  }
-
-  Future<void> _preparePrettierServer() async {
-    // We use a lock file to ensure that the NPM package is only installed once.
-    final lockFile = await File(await _lockFilePath).open(mode: FileMode.write);
-    await lockFile.lock(FileLock.blockingExclusive);
-
-    try {
-      if (Directory(await _nodeModulesPath).existsSync()) {
-        if (_logger.isVerbose) {
-          _logger.trace('prettier server is already installed.');
-        }
-        return;
-      }
-
-      _logger.stdout('Installing prettier server...');
-      await runProcess('npm', ['ci'], workingDirectory: await _serverPath);
-      _logger.stdout('prettier server installed.');
-    } finally {
-      await lockFile.unlock();
-      await lockFile.close();
-    }
   }
 }
