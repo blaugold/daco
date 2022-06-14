@@ -34,7 +34,7 @@ scripts:
 
   test:
     description: Runs tests.
-    run: dart test -r expanded
+    run: dart test
     exec:
       concurrency: 1
 

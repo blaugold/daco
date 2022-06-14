@@ -7,6 +7,7 @@ import 'package:analyzer/source/line_info.dart';
 import 'package:collection/collection.dart';
 import 'package:dart_style/dart_style.dart';
 
+import 'char_codes.dart';
 import 'code_block_attribute.dart';
 import 'prettier.dart';
 import 'source.dart';
@@ -102,11 +103,13 @@ class DacoFormatter {
       // We skip the lines we added to wrap the code in the main function.
       lines.skip(1).take(max(0, lines.length - 3)).forEach((line) {
         // Remove indentation.
-        if (line.isEmpty) {
-          buffer.writeln();
-        } else {
-          buffer.writeln(line.substring(2));
+        var lineIndentation = 0;
+        while (lineIndentation < 2 &&
+            line.length > lineIndentation &&
+            line.codeUnitAt(lineIndentation) == $SPACE) {
+          lineIndentation++;
         }
+        buffer.writeln(line.substring(lineIndentation));
       });
       formattedText = buffer.toString();
     }
