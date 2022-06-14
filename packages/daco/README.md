@@ -35,49 +35,71 @@ Prose is reprinted to optimally fit within the specified line length (defaults
 to 80):
 
 ```diff
-- /// The quick brown fox     jumps over the lazy dog. The quick brown fox jumps over the lazy dog.
-+ /// The quick brown fox jumps over the lazy dog. The quick brown fox jumps over
-+ /// the lazy dog.
-  const foo = 'bar';
+- /// Formats the given [source]   string containing an entire Dart compilation unit.
++ /// Formats the given [source] string containing an entire Dart compilation
++ /// unit.
+  Future<String> format(String source, {String? path}) async;
 ```
 
 This is useful when writing and updating documentation comments and an edit
 pushes some text beyond the preferred line length.
 
-## Embedded Dart code
-
-Fenced code blocks that are tagged with `dart` are formatted as Dart code.
+Example code in fenced code blocks that is marked as Dart code is formatted:
 
 ````diff
-  /// A top level constant.
+  /// Greets the user.
   ///
   /// ```dart
-- /// const fooList = [foo,];
-+ /// const fooList = [
-+ ///   foo,
-+ /// ];
+- /// greet(name: 'Alice',);
++ /// greet(
++ ///   name: 'Alice',
++ /// );
   /// ```
-  const foo = 'bar';
+  void greet({required String name});
 ````
 
-The Dart code is parsed and if it contains syntactic errors they are reported
-with correct line and column numbers. This provides a basic check for this code,
-ensuring it is at least syntactically correct.
+Formatting of example code and documentation comments is **recursive**. That
+means documentation comments in example code are formatted too.
 
-If the code does not represent a valid Dart file, formatting of it can be
-disabled by tagging it with `no_format`:
+The example code is parsed and if it contains syntactic errors they are reported
+with correct line and column numbers. This provides a basic check, ensuring that
+the code is at least syntactically correct.
+
+# Example code attributes
+
+Example code can be annotated with attributes to influence how it is processed.
+
+## `no_format`
+
+If example code does not represent valid Dart, formatting can be disabled by
+annotating it with the `no_format` attribute:
 
 ````dart
-/// A top level constant.
+/// Greets the user.
 ///
 /// ```dart no_format
-/// print(foo)
+/// greet(name: ...);
 /// ```
-const foo = 'bar';
+void greet({required String name});
 ````
 
-Formatting of Dart code and documentation comments is **recursive**. That means
-comments in fenced code blocks containing Dart code are formatted too.
+## `main`
+
+Example code must represent a valid Dart file. Often times is preferable to
+write example code as if it were contained in a function, but without the
+function syntax and indentation.
+
+By annotating example code with the `main` attribute, the code is wrapped in a
+function before processing:
+
+````dart
+/// Greets the user.
+///
+/// ```dart main
+/// greet(name: 'Alice');
+/// ```
+void greet({required String name});
+````
 
 ## Dartdoc tags
 
@@ -101,7 +123,6 @@ location of dartdoc tags after formatting.
 
 # TODO
 
-- [ ] Support standalone statements in embedded Dart code
 - [ ] Support formatting of end of line comments
 - [ ] Support disabling formatting for a comment
 

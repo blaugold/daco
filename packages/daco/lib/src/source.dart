@@ -73,6 +73,15 @@ abstract class DartSource extends Source {
   factory DartSource({required String text, String? uri}) =
       _DartSourceImpl.root;
 
+  /// Creates a new [DartSource] which compose out of lines of text and other
+  /// [DartSource]s.
+  ///
+  /// [parts] must contain only [String]s and [DartSource]s, which are
+  /// concatenated into the [text] of the resulting [DartSource]. Each [String]
+  /// represents a line of text.
+  factory DartSource.composed(Iterable<Object> parts, {String? uri}) =
+      _ComposedDartSourceImpl;
+
   /// Computes the [MarkdownSource]s of documentation comments in this source.
   List<MarkdownSource> documentationComments();
 
@@ -90,8 +99,8 @@ abstract class MarkdownSource extends Source {
   /// Computes the [DartSource]s of fenced code blocks in this source.
   List<DartSource> dartCodeBlocks();
 
-  /// Returns the tags [of] one of the enclosed [dartCodeBlocks].
-  List<String> codeBlockTags({required Source of});
+  /// Returns the info line [of] one of the enclosed [dartCodeBlocks].
+  String infoLine({required Source of});
 }
 
 class _DocumentImpl extends Document {
@@ -197,21 +206,21 @@ class _DartSourceImpl extends _AbstractSource implements DartSource {
 
   _DartSourceImpl.root({required super.text, super.uri}) : super.root();
 
-  late final _parsedStringResult = parseString(
+  late final _parseResult = parseString(
     content: text,
     path: document.uri,
     throwIfDiagnostics: false,
   );
 
   late final _analysisErrors =
-      _parsedStringResult.errors.map(_translateAnalysisError).toList();
+      _parseResult.errors.map(_translateAnalysisError).toList();
 
   late final _documentationComments = _collectDocumentationComments();
 
   final _documentationCommentAstNodes = <MarkdownSource, Comment>{};
 
   @override
-  LineInfo _provideLineInfo() => _parsedStringResult.lineInfo;
+  LineInfo _provideLineInfo() => _parseResult.lineInfo;
 
   int _commentIndentation(Comment comment) =>
       lineInfo.getLocation(comment.offset).columnNumber - 1;
@@ -240,12 +249,17 @@ class _DartSourceImpl extends _AbstractSource implements DartSource {
   @override
   List<MarkdownSource> documentationComments() => _documentationComments;
 
+  /// Whether a [comment] is a documentation comment that belongs to this source
+  ///
+  /// Otherwise the [comment] must belong to one of its [enclosedSources].
+  bool _isOwnDocumentationComment(Comment comment) => true;
+
   List<MarkdownSource> _collectDocumentationComments() {
     final collector = _CommentCollector();
-    _parsedStringResult.unit.accept(collector);
+    _parseResult.unit.accept(collector);
     final comments = collector.comments;
 
-    return comments.map((comment) {
+    return comments.where(_isOwnDocumentationComment).map((comment) {
       final lineStartOffsets = <int>[];
       final buffer = StringBuffer();
 
@@ -275,8 +289,10 @@ class _DartSourceImpl extends _AbstractSource implements DartSource {
   @override
   List<AnalysisError> analysisErrors() => _analysisErrors;
 
-  /// Translates an [AnalysisError] to be relative to the [document]'s [Source].
   AnalysisError _translateAnalysisError(AnalysisError error) {
+    // Translate an [AnalysisError] to be relative to the [document]'s
+    // [Source].
+
     if (document.source == this) {
       return error;
     }
@@ -359,8 +375,143 @@ class _CommentCollector extends RecursiveAstVisitor<void> {
   }
 }
 
-final _fencedDartCodeRegExp =
-    RegExp(r'^( *)```dart([^\n]*)\n(((?!```)(.|\n))*)```', multiLine: true);
+class _ComposedDartSourceImpl extends _DartSourceImpl {
+  factory _ComposedDartSourceImpl(Iterable<Object> parts, {String? uri}) {
+    final dartSources = <_Span, DartSource>{};
+    final text = _joinParts(parts, dartSources);
+    return _ComposedDartSourceImpl._(
+      text: text,
+      uri: uri,
+      dartSources: dartSources,
+    );
+  }
+
+  _ComposedDartSourceImpl._({
+    required super.text,
+    super.uri,
+    required Map<_Span, DartSource> dartSources,
+  })  : _dartSources = dartSources,
+        super.root();
+
+  final Map<_Span, DartSource> _dartSources;
+
+  late final _combinedEnclosedSource = [
+    ..._dartSources.values.toList(),
+    ...documentationComments(),
+  ];
+
+  static String _joinParts(
+    Iterable<Object> parts,
+    Map<_Span, DartSource> enclosedSources,
+  ) {
+    final buffer = StringBuffer();
+    var offset = 0;
+
+    for (final part in parts) {
+      final String text;
+      if (part is String) {
+        text = part;
+      } else if (part is DartSource) {
+        text = part.text;
+      } else {
+        throw ArgumentError.value(
+          part,
+          'parts',
+          'must contain only Strings or DartSources',
+        );
+      }
+
+      if (part is DartSource) {
+        enclosedSources[_Span(offset, text.length)] = part;
+      }
+
+      if (text.trimRight().endsWith('\n')) {
+        buffer.write(text);
+        offset += text.length;
+      } else {
+        buffer.writeln(text);
+        offset += text.length + 1;
+      }
+    }
+
+    return buffer.toString();
+  }
+
+  @override
+  int availableLineLength({required Source of, required int lineLength}) {
+    if (of is DartSource) {
+      if (!_dartSources.values.contains(of)) {
+        throw ArgumentError.value(
+          of,
+          'of',
+          'must be a Source that is enclosed by this source',
+        );
+      }
+
+      // Since we don't indent DartSources they have the full line length
+      // available.
+      return lineLength;
+    }
+
+    return super.availableLineLength(of: of, lineLength: lineLength);
+  }
+
+  @override
+  List<Source> enclosedSources() => _combinedEnclosedSource;
+
+  @override
+  String replaceEnclosedSources(Map<Source, String> replacements) =>
+      throw UnimplementedError();
+
+  @override
+  bool _isOwnDocumentationComment(Comment comment) =>
+      _dartSources.keys.none((span) => span.contains(comment.offset));
+
+  @override
+  AnalysisError _translateAnalysisError(AnalysisError error) {
+    // Translates error to be relative to the [Document] of the
+    // composed [DartSource] where the error occurred.
+
+    final entry = _findDartSourceByOffset(error.offset);
+    if (entry == null) {
+      // The error occurred in the code that was added around the DartSources,
+      // which we attribute to this source.
+      return error;
+    }
+
+    final span = entry.key;
+    final source = entry.value;
+
+    return AnalysisError.forValues(
+      source.document.analyzerSource,
+      source.translateOffset(error.offset - span.offset),
+      error.length,
+      error.errorCode,
+      error.message,
+      error.correctionMessage,
+    );
+  }
+
+  MapEntry<_Span, DartSource>? _findDartSourceByOffset(int offset) =>
+      _dartSources.entries
+          .firstWhereOrNull((entry) => entry.key.contains(offset));
+}
+
+class _Span {
+  _Span(this.offset, this.length);
+
+  final int offset;
+  final int length;
+
+  int get end => offset + length;
+
+  bool contains(int offset) => this.offset <= offset && offset < end;
+}
+
+final _fencedCodeRegExp = RegExp(
+  r'^(?<indent> *)([~`]{3,})(?<infoLine>.*)\n(?<code>((.|\n))*?)^\1\2',
+  multiLine: true,
+);
 
 class _MarkdownSourceImpl extends _AbstractSource implements MarkdownSource {
   _MarkdownSourceImpl({
@@ -373,7 +524,7 @@ class _MarkdownSourceImpl extends _AbstractSource implements MarkdownSource {
 
   late final _dartCodeBlocks = _parseDartCodeBlocks();
   final _dartCodeBlockMatches = <DartSource, RegExpMatch>{};
-  final _dartCodeBlockTags = <DartSource, List<String>>{};
+  final _dartCodeBlockInfoLine = <DartSource, String>{};
 
   @override
   List<Source> enclosedSources() => dartCodeBlocks();
@@ -390,7 +541,7 @@ class _MarkdownSourceImpl extends _AbstractSource implements MarkdownSource {
       );
     }
 
-    final indentation = _dartCodeBlockMatches[of]!.group(1)!;
+    final indentation = _dartCodeBlockMatches[of]!.namedGroup('indent')!;
     return lineLength - indentation.length;
   }
 
@@ -398,13 +549,16 @@ class _MarkdownSourceImpl extends _AbstractSource implements MarkdownSource {
   List<DartSource> dartCodeBlocks() => _dartCodeBlocks;
 
   List<DartSource> _parseDartCodeBlocks() {
-    final matches = _fencedDartCodeRegExp.allMatches(text);
+    final matches = _fencedCodeRegExp.allMatches(text);
     final dartCodeBlocks = <DartSource>[];
 
     for (final match in matches) {
-      final indentation = match.group(1)!.length;
-      final tags = match.group(2)!;
-      final code = match.group(3)!;
+      final indentation = match.namedGroup('indent')!.length;
+      final infoLine = match.namedGroup('infoLine')!;
+      if (!infoLine.startsWith('dart')) {
+        continue;
+      }
+      final code = match.namedGroup('code')!;
 
       // LineInfo returns one-based line numbers and since the code starts
       // on the line after the ```, we need don't need to subtract 1 from
@@ -441,20 +595,14 @@ class _MarkdownSourceImpl extends _AbstractSource implements MarkdownSource {
       dartCodeBlocks.add(source);
 
       _dartCodeBlockMatches[source] = match;
-      _dartCodeBlockTags[source] = _parseTags(tags);
+      _dartCodeBlockInfoLine[source] = infoLine;
     }
 
     return dartCodeBlocks;
   }
 
-  List<String> _parseTags(String tags) => tags
-      .split(' ')
-      .map((tag) => tag.trim())
-      .whereNot((tag) => tag.isEmpty)
-      .toList();
-
   @override
-  List<String> codeBlockTags({required Source of}) {
+  String infoLine({required Source of}) {
     if (!dartCodeBlocks().contains(of)) {
       throw ArgumentError.value(
         of,
@@ -463,7 +611,7 @@ class _MarkdownSourceImpl extends _AbstractSource implements MarkdownSource {
       );
     }
 
-    return _dartCodeBlockTags[of]!;
+    return _dartCodeBlockInfoLine[of]!;
   }
 
   @override
@@ -486,8 +634,8 @@ class _MarkdownSourceImpl extends _AbstractSource implements MarkdownSource {
       final match = entry.key;
       final replacement = entry.value;
 
-      final indentation = ' ' * match.group(1)!.length;
-      final tags = match.group(2)!;
+      final indentation = ' ' * match.namedGroup('indent')!.length;
+      final infoLine = match.namedGroup('infoLine')!;
 
       final lines = replacement.split('\n');
       if (lines.length > 1 && lines.last.isEmpty) {
@@ -497,8 +645,8 @@ class _MarkdownSourceImpl extends _AbstractSource implements MarkdownSource {
       buffer
         ..write(text.substring(lastMatch?.end ?? 0, match.start))
         ..write(indentation)
-        ..write('```dart')
-        ..write(tags)
+        ..write('```')
+        ..write(infoLine)
         ..writeln();
 
       lines.forEachIndexed((index, line) {
