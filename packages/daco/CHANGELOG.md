@@ -1,3 +1,12 @@
+## 0.2.0
+
+> Note: This release has breaking changes.
+
+ - **FIX**: identing in `main` code blocks ([#9](https://github.com/blaugold/daco/issues/9)). ([ef09065a](https://github.com/blaugold/daco/commit/ef09065ae41aa657bcbcdc11882ff242f3047b59))
+ - **FEAT**: log prettier server installation ([#8](https://github.com/blaugold/daco/issues/8)). ([c6903b63](https://github.com/blaugold/daco/commit/c6903b636a2adc864974c8046e8f82eed0cce112))
+ - **FEAT**: add `main` attribute for example code ([#6](https://github.com/blaugold/daco/issues/6)). ([82010ae1](https://github.com/blaugold/daco/commit/82010ae1e62c515f4f7b1c64ab9f06e603d6fccf))
+ - **BREAKING** **FEAT**: rename `no_format` attribute to `ignore` ([#7](https://github.com/blaugold/daco/issues/7)). ([0aa3f956](https://github.com/blaugold/daco/commit/0aa3f95648580387310985ce42f0480d2d869187))
+
 ## 0.1.1
 
  - **REFACTOR**: expose `LineInfo` on `Source` ([#4](https://github.com/blaugold/daco/issues/4)). ([bf943581](https://github.com/blaugold/daco/commit/bf94358147c0bf3e39e338d2f7f3c424a04a8aa6))
