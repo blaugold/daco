@@ -10,6 +10,7 @@ void main() {
   setUp(() async {
     ascii = false;
     await createSandboxDir();
+    await installPrettierServer();
   });
 
   test('format file', () async {

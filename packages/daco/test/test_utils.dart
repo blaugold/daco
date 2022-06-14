@@ -2,6 +2,8 @@ import 'dart:io';
 
 import 'package:ansi_styles/ansi_styles.dart';
 import 'package:cli_util/cli_logging.dart';
+import 'package:daco/src/logging.dart';
+import 'package:daco/src/prettier.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
@@ -60,4 +62,9 @@ class TestLogger implements Logger {
 
   @override
   void flush() {}
+}
+
+Future<void> installPrettierServer() async {
+  await PrettierService(logger: DacoLogger(StandardLogger()))
+      .installPrettierServer();
 }
