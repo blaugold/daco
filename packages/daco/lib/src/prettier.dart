@@ -201,13 +201,9 @@ class PrettierService {
         return;
       }
 
-      if (_logger.isVerbose) {
-        _logger.trace('installing prettier server...');
-      }
+      _logger.stdout('Installing prettier server...');
       await runProcess('npm', ['ci'], workingDirectory: await _serverPath);
-      if (_logger.isVerbose) {
-        _logger.trace('prettier server installed.');
-      }
+      _logger.stdout('prettier server installed.');
     } finally {
       await lockFile.unlock();
       await lockFile.close();
