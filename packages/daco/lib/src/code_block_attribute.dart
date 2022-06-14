@@ -3,7 +3,7 @@ import 'source.dart';
 /// An attribute of a code block that influences how it is processed.
 enum CodeBlockAttribute {
   /// The code block should not be formatted.
-  noFormat,
+  ignore,
 
   /// The code block contains code for the body of the `main` function.
   main;
@@ -12,8 +12,8 @@ enum CodeBlockAttribute {
   static Iterable<CodeBlockAttribute> parseInfoLine(String infoLine) sync* {
     for (final word in infoLine.split(' ')) {
       switch (word.trim()) {
-        case 'no_format':
-          yield CodeBlockAttribute.noFormat;
+        case 'ignore':
+          yield CodeBlockAttribute.ignore;
           break;
         case 'main':
           yield CodeBlockAttribute.main;
@@ -49,9 +49,8 @@ extension CodeBlockAttributeSourceExt on DartSource {
     return _codeBlockAttributesExpando[this] = attributes;
   }
 
-  /// Whether this source should be formatted.
-  bool get shouldBeFormatted =>
-      !codeBlockAttributes.contains(CodeBlockAttribute.noFormat);
+  /// Whether this source should be ignored.
+  bool get isIgnored => codeBlockAttributes.contains(CodeBlockAttribute.ignore);
 
   /// Whether this source contains code for the body of the `main` function.
   bool get isInMainFunction =>

@@ -25,7 +25,7 @@ A tool for maintaining **Da**rt **co**mments (daco).
 
 # Formatting
 
-daco formats documentation comments in Dart files.
+daco formats Dart files, including documentation comments.
 
 prettier is used to format comments as Markdown. This means that the conventions
 of prettier are applied, such as using `**` to bold text instead of `__`. A nice
@@ -59,7 +59,7 @@ Example code in fenced code blocks that is marked as Dart code is formatted:
 ````
 
 Formatting of example code and documentation comments is **recursive**. That
-means documentation comments in example code are formatted too.
+means documentation comments in example code are formatted, too.
 
 The example code is parsed and if it contains syntactic errors they are reported
 with correct line and column numbers. This provides a basic check, ensuring that
@@ -69,15 +69,18 @@ the code is at least syntactically correct.
 
 Example code can be annotated with attributes to influence how it is processed.
 
-## `no_format`
+## `ignore`
 
-If example code does not represent valid Dart, formatting can be disabled by
-annotating it with the `no_format` attribute:
+If example code should not be processed, it can be ignored by annotating it with
+the `ignore` attribute.
+
+The example code below, for example, is not valid and would result in an error,
+but it is instead ignored:
 
 ````dart
 /// Greets the user.
 ///
-/// ```dart no_format
+/// ```dart ignore
 /// greet(name: ...);
 /// ```
 void greet({required String name});
@@ -85,11 +88,11 @@ void greet({required String name});
 
 ## `main`
 
-Example code must represent a valid Dart file. Often times is preferable to
-write example code as if it were contained in a function, but without the
-function syntax and indentation.
+Example code must represent a valid Dart file. Often it is preferable to write
+example code as if it were contained in a function, but without the function
+syntax and indentation.
 
-By annotating example code with the `main` attribute, the code is wrapped in a
+By annotating example code with the `main` attribute the code is wrapped in a
 function before processing:
 
 ````dart
