@@ -65,6 +65,26 @@ The example code is parsed and if it contains syntactic errors they are reported
 with correct line and column numbers. This provides a basic check, ensuring that
 the code is at least syntactically correct.
 
+## Dartdoc tags
+
+Dartdoc supports tags for features such as templates. Dartdoc tags should be
+separated from other content with an empty line, since prettier does not
+recognize them as special and formats them as simple text:
+
+```dart
+/// A top level constant.
+///
+/// {@template foo}
+///
+/// The template content.
+///
+/// {@endtemplate}
+const foo = 'bar';
+```
+
+When formatting a preexisting codebase special attention should be paid to the
+location of dartdoc tags after formatting.
+
 # Example code attributes
 
 Example code can be annotated with attributes to influence how it is processed.
@@ -103,26 +123,6 @@ function before processing:
 /// ```
 void greet({required String name});
 ````
-
-## Dartdoc tags
-
-Dartdoc supports tags for features such as templates. Dartdoc tags should be
-separated from other content with an empty line, since prettier does not
-recognize them as special and formats them as simple text:
-
-```dart
-/// A top level constant.
-///
-/// {@template foo}
-///
-/// The template content.
-///
-/// {@endtemplate}
-const foo = 'bar';
-```
-
-When formatting a preexisting codebase special attention should be paid to the
-location of dartdoc tags after formatting.
 
 # TODO
 
