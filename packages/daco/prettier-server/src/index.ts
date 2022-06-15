@@ -1,18 +1,37 @@
 import * as express from 'express'
-import { AddressInfo } from 'net'
+import { AddressInfo } from 'node:net'
+import * as os from 'node:os'
 import * as prettier from 'prettier'
+const cluster = require('node:cluster')
 
-const app = express()
+if (!cluster.isWorker) {
+  for (var i = 0; i < os.cpus().length; i++) {
+    cluster.fork({ LOG_PORT: i == 0 })
+  }
+} else {
+  startServer().then((port) => {
+    if (process.env['LOG_PORT'] === 'true') {
+      // Log the port we are listening on so the process that started the server
+      // can connect to it, but only from the first worker. All other workers will use
+      // the same port.
+      console.log(JSON.stringify({ port }))
+    }
+  })
+}
 
-app.use(express.json())
+function startServer(): Promise<number> {
+  const app = express()
 
-app.post('/format', formatRequestHandler())
+  app.use(express.json())
 
-const server = app.listen(() => {
-  // Log the port we are listening on so the process that started the server
-  // can connect to it.
-  console.log(JSON.stringify({ port: (server.address() as AddressInfo).port }))
-})
+  app.post('/format', formatRequestHandler())
+
+  return new Promise((resolve) => {
+    const server = app.listen(0, () => {
+      resolve((server.address() as AddressInfo).port)
+    })
+  })
+}
 
 interface FormatRequest {
   source: string
