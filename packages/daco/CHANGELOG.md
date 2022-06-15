@@ -1,3 +1,8 @@
+## 0.2.0+1
+
+ - **PERF**: use workers in prettier server ([#10](https://github.com/blaugold/daco/issues/10)). ([3d70b506](https://github.com/blaugold/daco/commit/3d70b50665a5301631fc00e1b01603de1fa07cde))
+ - **DOCS**: move dartdoc section to correct place. ([c66f0e0c](https://github.com/blaugold/daco/commit/c66f0e0c72c165911df22c65291d22696ca0508a))
+
 ## 0.2.0
 
 > Note: This release has breaking changes.
