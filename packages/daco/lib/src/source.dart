@@ -87,6 +87,10 @@ abstract class DartSource extends Source {
 
   /// Computes the [AnalysisError]s of the Dart code in this source.
   List<AnalysisError> analysisErrors();
+
+  /// Translates an [AnalysisError] that originated in this source's [text] to
+  /// the correct location.
+  AnalysisError translateAnalysisError(AnalysisError error);
 }
 
 /// A [Source] which contains Markdown.
@@ -213,7 +217,7 @@ class _DartSourceImpl extends _AbstractSource implements DartSource {
   );
 
   late final _analysisErrors =
-      _parseResult.errors.map(_translateAnalysisError).toList();
+      _parseResult.errors.map(translateAnalysisError).toList();
 
   late final _documentationComments = _collectDocumentationComments();
 
@@ -289,7 +293,8 @@ class _DartSourceImpl extends _AbstractSource implements DartSource {
   @override
   List<AnalysisError> analysisErrors() => _analysisErrors;
 
-  AnalysisError _translateAnalysisError(AnalysisError error) {
+  @override
+  AnalysisError translateAnalysisError(AnalysisError error) {
     // Translate an [AnalysisError] to be relative to the [document]'s
     // [Source].
 
@@ -468,7 +473,7 @@ class _ComposedDartSourceImpl extends _DartSourceImpl {
       _dartSources.keys.none((span) => span.contains(comment.offset));
 
   @override
-  AnalysisError _translateAnalysisError(AnalysisError error) {
+  AnalysisError translateAnalysisError(AnalysisError error) {
     // Translates error to be relative to the [Document] of the
     // composed [DartSource] where the error occurred.
 
