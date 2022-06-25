@@ -3,6 +3,7 @@ import 'package:daco/src/analyzer/parser.dart';
 import 'package:test/test.dart';
 
 void main() {
+  // TODO migrate tests from source_test
   test('complex example', () {
     final source = StringSource(
       '''

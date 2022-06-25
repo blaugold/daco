@@ -1,5 +1,5 @@
+import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/analysis/results.dart';
-import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart' hide Block;
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -9,9 +9,9 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:collection/collection.dart';
 
 import '../char_codes.dart';
+import '../file_utils.dart';
 import 'block.dart';
 import 'block_impl.dart';
-import 'file_utils.dart';
 
 final _fencedCodeRegExp = RegExp(
   r'^(?<indent> *)([~`]{3,})(?<infoLine>.*)\n(?<code>((.|\n))*?)^\1\2',
@@ -21,11 +21,11 @@ final _fencedCodeRegExp = RegExp(
 /// Parser for parsing [Block]s.
 class BlockParser {
   /// Creates a parser for parsing [Block]s.
-  BlockParser({this.analysisSession});
+  BlockParser({this.analysisContext});
 
-  /// The session to use for retrieving the parse results for Dart files, if
-  /// a session is available.
-  final AnalysisSession? analysisSession;
+  /// The context to use for retrieving the parse results for Dart files, if
+  /// one is available.
+  final AnalysisContext? analysisContext;
 
   /// The block that was parsed during the last call to [parse].
   Block? block;
@@ -53,9 +53,10 @@ class BlockParser {
     final CompilationUnit astNode;
     final List<AnalysisError> errors;
 
-    if (analysisSession != null) {
-      final result =
-          analysisSession!.getParsedUnit(source.fullName) as ParsedUnitResult;
+    final analysisContext = this.analysisContext;
+    if (analysisContext != null) {
+      final result = analysisContext.currentSession
+          .getParsedUnit(source.fullName) as ParsedUnitResult;
       lineInfo = result.lineInfo;
       astNode = result.unit;
       errors = result.errors;
@@ -208,7 +209,7 @@ class BlockParser {
       block.addFencedCodeBlock(
         childBlock,
         BlockSpan(
-          offset: match.start + indentation ,
+          offset: match.start + indentation,
           length: match.end - match.start - indentation,
         ),
       );

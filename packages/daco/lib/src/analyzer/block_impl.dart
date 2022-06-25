@@ -12,7 +12,10 @@ class BlockSpan {
 
   final int offset;
   final int length;
+
   int get end => offset + length;
+
+  bool contains(int offset) => this.offset <= offset && offset < end;
 }
 
 abstract class BlockImpl extends Block {

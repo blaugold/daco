@@ -9,8 +9,10 @@ import 'package:analyzer/source/line_info.dart';
 import 'package:ansi_styles/ansi_styles.dart';
 import 'package:path/path.dart' as p;
 
-import '../analyzer.dart';
+import '../analyzer/analysis_context.dart';
+import '../analyzer/analyzer.dart';
 import '../char_codes.dart';
+import '../file_utils.dart';
 import 'daco_command.dart';
 
 class AnalyzeCommand extends DacoCommand {
@@ -54,29 +56,33 @@ class AnalyzeCommand extends DacoCommand {
         contextLocator.locateRoots(includedPaths: _includedPaths);
 
     for (final contextRoot in contextRoots) {
-      final analysisContext = DacoAnalysisContext(contextRoot: contextRoot);
+      final analyzer = DacoAnalyzer(contextRoot: contextRoot);
 
-      final progress = logger
-          .progress('Analyzing ${_contextRootDisplayName(analysisContext)}');
+      final progress =
+          logger.progress('Analyzing ${_contextRootDisplayName(analyzer)}');
 
-      final allErrors = await analysisContext.session.allErrors();
+      final allErrors = (await Future.wait(
+        contextRoot
+            .analyzedFiles()
+            .where(isDartFile)
+            .map((file) => analyzer.session.getErrors(file)),
+      ))
+          .expand((errors) => errors);
 
       if (allErrors.isEmpty) {
         progress.finish(message: 'Found no issues.');
       } else {
         progress.finish(message: 'Found issues:');
-        for (final errors in allErrors.values) {
-          for (final error in errors) {
-            _setExitCode(error);
-            stdout.writeln(_formatError(error));
-          }
+        for (final error in allErrors) {
+          _setExitCode(error);
+          stdout.writeln(_formatError(error));
         }
       }
     }
   }
 
   String _contextRootDisplayName(DacoAnalysisContext analysisContext) =>
-      analysisContext.session.pubspec?.name ??
+      analysisContext.pubspec?.name ??
       p.relative(analysisContext.contextRoot.root.path);
 
   void _setExitCode(AnalysisError error) {
