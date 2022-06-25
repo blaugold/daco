@@ -1,26 +1,11 @@
+import 'analyzer/block.dart';
 import 'source.dart';
 
-/// An attribute of a code block that influences how it is processed.
-enum CodeBlockAttribute {
-  /// The code block should not be formatted.
-  ignore,
-
-  /// The code block contains code for the body of the `main` function.
-  main;
-
-  /// Parses [CodeBlockAttribute]s in the info line of a fenced code block.
-  static Iterable<CodeBlockAttribute> parseInfoLine(String infoLine) sync* {
-    for (final word in infoLine.split(' ')) {
-      switch (word.trim()) {
-        case 'ignore':
-          yield CodeBlockAttribute.ignore;
-          break;
-        case 'main':
-          yield CodeBlockAttribute.main;
-          break;
-        default:
-          continue;
-      }
+Iterable<CodeBlockAttribute> _parseInfoLine(String infoLine) sync* {
+  for (final word in infoLine.split(' ')) {
+    final value = CodeBlockAttribute.values.asNameMap()[word.trim()];
+    if (value != null) {
+      yield value;
     }
   }
 }
@@ -39,7 +24,7 @@ extension CodeBlockAttributeSourceExt on DartSource {
 
     final enclosingSource = this.enclosingSource;
     if (enclosingSource is MarkdownSource) {
-      attributes = CodeBlockAttribute.parseInfoLine(
+      attributes = _parseInfoLine(
         enclosingSource.infoLine(of: this),
       ).toSet();
     } else {

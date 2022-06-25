@@ -7,10 +7,11 @@ import 'package:analyzer/source/line_info.dart';
 import 'package:collection/collection.dart';
 import 'package:dart_style/dart_style.dart';
 
+import 'analyzer/block.dart';
+import 'analyzer/utils.dart';
 import 'char_codes.dart';
-import 'code_block_attribute.dart';
 import 'prettier.dart';
-import 'source.dart';
+import 'utils.dart';
 
 final _dartDocTagRegExp = RegExp('{@.+}');
 final _dartDocTagWithSpacerRegExp = RegExp(r'({@.+})-+$', multiLine: true);
@@ -36,67 +37,54 @@ class DacoFormatter {
   /// Formats the given [source] string containing an entire Dart compilation
   /// unit.
   Future<String> format(String source, {String? path}) async {
-    final rootSource = DartSource(text: source, uri: path);
-    _checkForDartSyntacticErrors(rootSource);
-    return _formatDart(rootSource, lineLength: lineLength);
+    final parseResult = parseString(text: source, uri: path ?? 'file.dart');
+    _checkForSyntacticErrors(parseResult.errors);
+    return _formatBlock(parseResult.block, lineLength: lineLength);
   }
 
-  void _checkForDartSyntacticErrors(DartSource source) {
-    final errors = <AnalysisError>[];
-    final sources = <DartSource>[source];
+  void _checkForSyntacticErrors(List<AnalysisError> errors) {
+    final syntacticErrors = errors
+        .where((error) => error.errorCode.type == ErrorType.SYNTACTIC_ERROR)
+        .toList();
 
-    while (sources.isNotEmpty) {
-      final source = sources.removeAt(0);
-
-      final syntacticErrors = source
-          .analysisErrors()
-          .where((error) => error.errorCode.type == ErrorType.SYNTACTIC_ERROR);
-      errors.addAll(syntacticErrors);
-
-      final enclosedDartSources = source.documentationComments().expand(
-            (comment) => comment
-                .dartCodeBlocks()
-                .whereNot((codeBlock) => codeBlock.isIgnored)
-                .map((codeBlock) {
-              if (codeBlock.isInMainFunction) {
-                return DartSource.composed([
-                  'Future<void> main() async {',
-                  codeBlock,
-                  '}',
-                ]);
-              } else {
-                return codeBlock;
-              }
-            }),
-          );
-      sources.addAll(enclosedDartSources);
-    }
-
-    if (errors.isNotEmpty) {
-      throw FormatterException(errors);
+    if (syntacticErrors.isNotEmpty) {
+      throw FormatterException(syntacticErrors);
     }
   }
 
-  Future<String> _formatDart(
-    DartSource source, {
+  Future<String> _formatBlock(
+    Block block, {
+    required int lineLength,
+  }) async {
+    if (block is DartBlock) {
+      return _formatDartBlock(block, lineLength: lineLength);
+    } else if (block is MarkdownBlock) {
+      return _formatMarkdownBlock(block, lineLength: lineLength);
+    } else {
+      unreachable();
+    }
+  }
+
+  Future<String> _formatDartBlock(
+    DartBlock block, {
     required int lineLength,
   }) async {
     final formatter = DartFormatter(
       pageWidth: lineLength +
           // We add 2 to the line length to account for the indentation within
           // the main function.
-          (source.isInMainFunction ? 2 : 0),
+          (block.isInMainBody ? 2 : 0),
       fixes: fixes,
     );
 
-    var text = source.text;
-    if (source.isInMainFunction) {
+    var text = block.text;
+    if (block.isInMainBody) {
       // Wrap the code in a function so that it can be parsed and formatted.
       text = 'Future<void> main() async {\n$text}\n';
     }
 
     var formattedText = formatter.format(text);
-    if (source.isInMainFunction) {
+    if (block.isInMainBody) {
       // We need to remove the main function wrapper we added earlier.
       final buffer = StringBuffer();
       final lines = formattedText.split('\n').toList();
@@ -114,14 +102,15 @@ class DacoFormatter {
       formattedText = buffer.toString();
     }
 
-    final formattedSource = DartSource(text: formattedText);
-    final formattedComments = <MarkdownSource, String>{};
+    final formattedBlock =
+        parseString(text: formattedText, uri: 'block.dart').block as DartBlock;
+    final formattedComments = <MarkdownBlock, String>{};
 
     await Future.wait(
-      formattedSource.documentationComments().map((comment) async {
-        formattedComments[comment] = await _formatDocumentationComment(
+      formattedBlock.documentationComments.map((comment) async {
+        formattedComments[comment] = await _formatMarkdownBlock(
           comment,
-          lineLength: formattedSource.availableLineLength(
+          lineLength: formattedBlock.availableLineLength(
             of: comment,
             lineLength: lineLength,
           ),
@@ -129,30 +118,31 @@ class DacoFormatter {
       }),
     );
 
-    return formattedSource.replaceEnclosedSources(formattedComments);
+    return formattedBlock.replaceEnclosedBlocks(formattedComments);
   }
 
-  Future<String> _formatDocumentationComment(
-    MarkdownSource source, {
+  Future<String> _formatMarkdownBlock(
+    MarkdownBlock block, {
     required int lineLength,
   }) async {
     final formattedText = await _formatDocumentationCommentMarkdown(
-      source.text,
-      source.lineInfo,
+      block.text,
+      block.lineInfo,
       lineLength,
     );
-    final formattedSource = MarkdownSource(text: formattedText);
-    final formattedCodeBlocks = <DartSource, String>{};
+    final formattedBlock = parseString(text: formattedText, uri: 'block.md')
+        .block as MarkdownBlock;
+    final formattedCodeBlocks = <DartBlock, String>{};
 
     await Future.wait(
-      formattedSource.dartCodeBlocks().map((codeBlock) async {
+      formattedBlock.dartCodeBlocks.map((codeBlock) async {
         if (codeBlock.isIgnored) {
           return;
         }
 
-        formattedCodeBlocks[codeBlock] = await _formatDart(
+        formattedCodeBlocks[codeBlock] = await _formatDartBlock(
           codeBlock,
-          lineLength: formattedSource.availableLineLength(
+          lineLength: formattedBlock.availableLineLength(
             of: codeBlock,
             lineLength: lineLength,
           ),
@@ -160,7 +150,7 @@ class DacoFormatter {
       }),
     );
 
-    return formattedSource.replaceEnclosedSources(formattedCodeBlocks);
+    return formattedBlock.replaceEnclosedBlocks(formattedCodeBlocks);
   }
 
   Future<String> _formatDocumentationCommentMarkdown(
