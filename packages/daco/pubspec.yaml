@@ -22,6 +22,8 @@ dependencies:
   dart_style: ^2.2.3
   http: ^0.13.4
   path: ^1.8.2
+  pubspec_parse: ^1.2.0
+  solvent: ^0.1.1
 
 dev_dependencies:
   term_glyph: ^1.2.0
