@@ -1,3 +1,7 @@
+## 0.2.1
+
+ - **FEAT**: add `analyze` command ([#11](https://github.com/blaugold/daco/issues/11)). ([6bed9e38](https://github.com/blaugold/daco/commit/6bed9e3898451656062a78313ea0bcc5e5e2f745))
+
 ## 0.2.0+1
 
  - **PERF**: use workers in prettier server ([#10](https://github.com/blaugold/daco/issues/10)). ([3d70b506](https://github.com/blaugold/daco/commit/3d70b50665a5301631fc00e1b01603de1fa07cde))
