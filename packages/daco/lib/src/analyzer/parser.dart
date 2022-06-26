@@ -23,8 +23,8 @@ class BlockParser {
   /// Creates a parser for parsing [Block]s.
   BlockParser({this.analysisContext});
 
-  /// The context to use for retrieving the parse results for Dart files, if
-  /// one is available.
+  /// The context to use for retrieving the parse results for Dart files, if one
+  /// is available.
   final AnalysisContext? analysisContext;
 
   /// The block that was parsed during the last call to [parse].
@@ -33,8 +33,8 @@ class BlockParser {
   /// The errors that were discovered during the last call to [parse].
   List<AnalysisError>? errors;
 
-  /// Parses the root [Block] for [source] and stores the result in
-  /// [block] and [errors].
+  /// Parses the root [Block] for [source] and stores the result in [block] and
+  /// [errors].
   void parse(Source source) {
     block = null;
     errors = [];
@@ -121,7 +121,7 @@ class BlockParser {
 
       block.addEnclosedDocumentationComment(
         childBlock,
-        BlockSpan(
+        Span(
           offset: commentAstNode.offset + astOffset,
           length: commentAstNode.length,
         ),
@@ -208,7 +208,7 @@ class BlockParser {
 
       block.addFencedCodeBlock(
         childBlock,
-        BlockSpan(
+        Span(
           offset: match.start + indentation,
           length: match.end - match.start - indentation,
         ),

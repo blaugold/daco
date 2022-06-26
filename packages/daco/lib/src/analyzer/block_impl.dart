@@ -7,8 +7,8 @@ import 'package:collection/collection.dart';
 
 import 'block.dart';
 
-class BlockSpan {
-  BlockSpan({required this.offset, required this.length});
+class Span {
+  Span({required this.offset, required this.length});
 
   final int offset;
   final int length;
@@ -64,12 +64,12 @@ abstract class BlockImpl extends Block {
   late final BlockImpl? enclosingBlock;
 
   final _enclosedBlocks = <Block>[];
-  final _enclosedBlockSpans = <Block, BlockSpan>{};
+  final _enclosedBlockSpans = <Block, Span>{};
 
   @override
   List<Block> get enclosedBlocks => List.unmodifiable(_enclosedBlocks);
 
-  void _addEnclosedBlock(BlockImpl block, BlockSpan span) {
+  void _addEnclosedBlock(BlockImpl block, Span span) {
     block.enclosingBlock = this;
     _enclosedBlocks.add(block);
     _enclosedBlockSpans[block] = span;
@@ -122,7 +122,7 @@ abstract class BlockImpl extends Block {
     return offset;
   }
 
-  int _spanIndentation(BlockSpan span) =>
+  int _spanIndentation(Span span) =>
       lineInfo.getLocation(span.offset).columnNumber - 1;
 }
 
@@ -158,7 +158,7 @@ class DartBlockImpl extends BlockImpl implements DartBlock {
 
   void addEnclosedDocumentationComment(
     MarkdownBlockImpl block,
-    BlockSpan commentSpan,
+    Span commentSpan,
   ) {
     _addEnclosedBlock(block, commentSpan);
   }
@@ -213,7 +213,7 @@ class DartBlockImpl extends BlockImpl implements DartBlock {
 
     final buffer = StringBuffer();
 
-    BlockSpan? lastCommentSpan;
+    Span? lastCommentSpan;
 
     for (final entry in replacementByComment) {
       final comment = entry.key;
@@ -272,7 +272,7 @@ class MarkdownBlockImpl extends BlockImpl implements MarkdownBlock {
   @override
   List<DartBlock> get dartCodeBlocks => enclosedBlocks.cast();
 
-  void addFencedCodeBlock(DartBlockImpl block, BlockSpan fencedCodeBlockSpan) {
+  void addFencedCodeBlock(DartBlockImpl block, Span fencedCodeBlockSpan) {
     _addEnclosedBlock(block, fencedCodeBlockSpan);
   }
 
@@ -303,7 +303,7 @@ class MarkdownBlockImpl extends BlockImpl implements MarkdownBlock {
 
     final buffer = StringBuffer();
 
-    BlockSpan? lastFencedCodeBlockSpan;
+    Span? lastFencedCodeBlockSpan;
 
     for (final entry in replacementBySpan) {
       final span = entry.key;

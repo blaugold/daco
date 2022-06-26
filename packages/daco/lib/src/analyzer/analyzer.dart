@@ -1,5 +1,3 @@
-// ignore_for_file: public_member_api_docs
-
 import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/analysis/context_builder.dart';
 import 'package:analyzer/dart/analysis/context_root.dart';
@@ -78,10 +76,10 @@ class DacoAnalyzer implements DacoAnalysisContext, DacoAnalysisSession {
 
   @override
   Future<List<AnalysisError>> getErrors(String file) async {
-    // TODO handle non existent file
-    // TODO cache results
+    // TODO(blaugold): handle non existent file
+    // TODO(blaugold): cache results
     final result = getParsedBlock(file);
-    // TODO handle markdown files
+    // TODO(blaugold): handle markdown files
     final block = result.block as DartBlock;
 
     final exampleCodeBlocks = block.documentationComments
@@ -90,13 +88,20 @@ class DacoAnalyzer implements DacoAnalysisContext, DacoAnalysisSession {
 
     final allErrors = <AnalysisError>[];
 
+    /// Add the errors in the Dart file itself, not the comments.
+    final errorsResult = await _context.currentSession.getErrors(file);
+    if (errorsResult is! ErrorsResult) {
+      throw Exception('$errorsResult for $file');
+    }
+    allErrors.addAll(errorsResult.errors);
+
     await Future.wait(
       exampleCodeBlocks.mapIndexed((index, codeBlock) async {
-        final analysisSourcePath = p.join(
+        final analysisBlockPath = p.join(
           p.dirname(file),
           '${p.basenameWithoutExtension(file)}_$index.dart',
         );
-        final analysisSource = ComposedDartUnit(
+        final analysisBlock = ComposedDartBlock(
           [
             if (_publicApiFileUri != null) ...[
               '// ignore: type=lint',
@@ -106,24 +111,24 @@ class DacoAnalyzer implements DacoAnalysisContext, DacoAnalysisSession {
             codeBlock,
             if (codeBlock.isInMainBody) '}',
           ],
-          uri: analysisSourcePath,
+          uri: analysisBlockPath,
         );
 
         _resourceProvider.setOverlay(
-          analysisSourcePath,
-          content: analysisSource.text,
+          analysisBlockPath,
+          content: analysisBlock.text,
           modificationStamp: 0,
         );
 
         final result =
-            await _context.currentSession.getErrors(analysisSourcePath);
+            await _context.currentSession.getErrors(analysisBlockPath);
 
         if (result is! ErrorsResult) {
-          throw Exception('$result for $analysisSourcePath');
+          throw Exception('$result for $analysisBlockPath');
         }
 
         final errors =
-            result.errors.map(analysisSource.translateAnalysisError).toList();
+            result.errors.map(analysisBlock.translateAnalysisError).toList();
 
         allErrors.addAll(errors);
       }),
@@ -134,8 +139,8 @@ class DacoAnalyzer implements DacoAnalysisContext, DacoAnalysisSession {
 
   @override
   ParsedBlockResult getParsedBlock(String file) {
-    // TODO handle non existent file
-    // TODO cache results
+    // TODO(blaugold): handle non existent file
+    // TODO(blaugold): cache results
     final text = _resourceProvider.getFile(file).readAsStringSync();
     _parser.parse(StringSource(text, file));
     return ParsedBlockResultImpl(_parser.block!, _parser.errors!, this);

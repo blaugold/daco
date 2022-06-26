@@ -78,7 +78,7 @@ abstract class DartBlock extends Block {
 
 /// A [Block] that contains Markdown.
 abstract class MarkdownBlock extends Block {
-  /// The [DartBlock]s for all fenced code blocks contained in this
-  /// block, in lexical order.
+  /// The [DartBlock]s for all fenced code blocks contained in this block, in
+  /// lexical order.
   List<DartBlock> get dartCodeBlocks;
 }

@@ -12,7 +12,7 @@ abstract class DacoAnalysisContext {
   /// file exists.
   Pubspec? get pubspec;
 
-  /// The [DacoAnalysisSession] that provides analysis results for files in
-  /// the [contextRoot].
+  /// The [DacoAnalysisSession] that provides analysis results for files in the
+  /// [contextRoot].
   DacoAnalysisSession get session;
 }
