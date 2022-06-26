@@ -18,7 +18,7 @@ import '../utils.dart';
 import 'analysis_context.dart';
 import 'analysis_session.dart';
 import 'block.dart';
-import 'composed_dart_unit.dart';
+import 'composed_block.dart';
 import 'exceptions.dart';
 import 'parser.dart';
 import 'result.dart';
@@ -138,7 +138,7 @@ class DacoAnalyzer implements DacoAnalysisContext, DacoAnalysisSession {
         final analysisBlock = ComposedDartBlock(
           [
             if (_publicApiFileUri != null) ...[
-              '// ignore: type=lint',
+              '// ignore: UNUSED_IMPORT',
               'import "$_publicApiFileUri";'
             ],
             if (codeBlock.isInMainBody) 'Future<void> main() async {',
