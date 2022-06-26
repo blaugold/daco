@@ -35,10 +35,10 @@ Prose is reprinted to optimally fit within the specified line length (defaults
 to 80):
 
 ```diff
-- /// Formats the given [source]   string containing an entire Dart compilation unit.
-+ /// Formats the given [source] string containing an entire Dart compilation
-+ /// unit.
-  Future<String> format(String source, {String? path}) async;
+-/// Formats the given [source]   string containing an entire Dart compilation unit.
++/// Formats the given [source] string containing an entire Dart compilation
++/// unit.
+Future<String> format(String source, {String? path}) async;
 ```
 
 This is useful when writing and updating documentation comments and an edit
@@ -47,15 +47,15 @@ pushes some text beyond the preferred line length.
 Example code in fenced code blocks that is marked as Dart code is formatted:
 
 ````diff
-  /// Greets the user.
-  ///
-  /// ```dart
-- /// greet(name: 'Alice',);
-+ /// greet(
-+ ///   name: 'Alice',
-+ /// );
-  /// ```
-  void greet({required String name});
+ /// Greets the user.
+ ///
+ /// ```dart
+-/// greet(name: 'Alice',);
++/// greet(
++///   name: 'Alice',
++/// );
+ /// ```
+ void greet({required String name});
 ````
 
 Formatting of example code and documentation comments is **recursive**. That
@@ -84,6 +84,33 @@ const foo = 'bar';
 
 When formatting a preexisting codebase special attention should be paid to the
 location of dartdoc tags after formatting.
+
+# Analyzing
+
+daco analyzes the example code in documentation comments.
+
+Take for example the following file:
+
+````dart
+/// Greets the user.
+///
+/// ```dart main
+/// greet();
+/// ```
+void greet({required String name}) {}
+````
+
+The example code is not passing the required `name` parameter.
+
+When running `daco analyze`, an error message with the correct error location
+and is printed:
+
+```shell
+$ daco analyze
+lib/greeter.dart:4:5 • The named parameter 'name' is required, but there's no corresponding argument. • MISSING_REQUIRED_ARGUMENT
+```
+
+The package which contains the example code is automatically imported.
 
 # Example code attributes
 
@@ -136,7 +163,6 @@ void greet({required String name});
   - Spelling
   - Punctuation
 - Format Dart code in Markdown files
-- Analyze Dart code embedded in Markdown
 - Test Dart code embedded in Markdown
 - Embedded templates in Markdown
   - Template is commented out
