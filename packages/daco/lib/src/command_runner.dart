@@ -2,6 +2,7 @@
 
 import 'package:args/command_runner.dart';
 
+import 'commands/analyze.dart';
 import 'commands/format.dart';
 import 'logging.dart';
 
@@ -17,6 +18,7 @@ class DacoCommandRunner extends CommandRunner<void> {
     );
 
     addCommand(FormatCommand());
+    addCommand(AnalyzeCommand());
   }
 
   /// The logger to use for CLI output.

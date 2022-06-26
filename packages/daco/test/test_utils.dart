@@ -18,9 +18,11 @@ Future<Directory> createSandboxDir() async {
   return sandboxDir!;
 }
 
-File sandboxFile(String name) => File(p.join(sandboxDir!.path, name));
+String sandboxFilePath(String name) => p.join(sandboxDir!.path, name);
 
-Future<File> createFile(String path, [String? content]) async {
+File sandboxFile(String name) => File(sandboxFilePath(name));
+
+Future<File> writeFile(String path, [String? content]) async {
   final file = await sandboxFile(path).create(recursive: true);
   await file.writeAsString(content ?? '');
   return file;
@@ -43,7 +45,7 @@ class TestLogger implements Logger {
   final bool isVerbose;
 
   @override
-  Progress progress(String message) => throw UnimplementedError();
+  Progress progress(String message) => SimpleProgress(this, message);
 
   @override
   void stdout(String message) => _buffer.writeln(message);
