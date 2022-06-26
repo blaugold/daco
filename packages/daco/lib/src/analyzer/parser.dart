@@ -12,6 +12,7 @@ import '../char_codes.dart';
 import '../file_utils.dart';
 import 'block.dart';
 import 'block_impl.dart';
+import 'exceptions.dart';
 
 final _fencedCodeRegExp = RegExp(
   r'^(?<indent> *)([~`]{3,})(?<infoLine>.*)\n(?<code>((.|\n))*?)^\1\2',
@@ -44,7 +45,7 @@ class BlockParser {
     } else if (isMarkdownFile(source.fullName)) {
       _parseMarkdownSource(source);
     } else {
-      throw UnsupportedError('Unsupported file type: ${source.fullName}');
+      throw UnsupportedFileType(source.fullName);
     }
   }
 

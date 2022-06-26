@@ -13,15 +13,22 @@ import 'package:path/path.dart' as p;
 import 'package:pubspec_parse/pubspec_parse.dart';
 import 'package:solvent/solvent.dart';
 
+import '../file_utils.dart';
+import '../utils.dart';
 import 'analysis_context.dart';
 import 'analysis_session.dart';
 import 'block.dart';
 import 'composed_dart_unit.dart';
+import 'exceptions.dart';
 import 'parser.dart';
 import 'result.dart';
 import 'result_impl.dart';
 
+/// Implementation of [DacoAnalysisContext] and [DacoAnalysisSession] for
+/// analysis of files in a [contextRoot].
 class DacoAnalyzer implements DacoAnalysisContext, DacoAnalysisSession {
+  /// Creates a new [DacoAnalyzer] for analysis of files in the given
+  /// [contextRoot].
   DacoAnalyzer({
     required this.contextRoot,
     ResourceProvider? resourceProvider,
@@ -75,31 +82,58 @@ class DacoAnalyzer implements DacoAnalysisContext, DacoAnalysisSession {
   }
 
   @override
-  Future<List<AnalysisError>> getErrors(String file) async {
-    // TODO(blaugold): handle non existent file
-    // TODO(blaugold): cache results
-    final result = getParsedBlock(file);
-    // TODO(blaugold): handle markdown files
-    final block = result.block as DartBlock;
+  ParsedBlockResult getParsedBlock(String path) {
+    final file = _resourceProvider.getFile(path);
 
-    final exampleCodeBlocks = block.documentationComments
-        .expand((comment) => comment.dartCodeBlocks)
-        .whereNot((codeBlock) => codeBlock.isIgnored);
-
-    final allErrors = <AnalysisError>[];
-
-    /// Add the errors in the Dart file itself, not the comments.
-    final errorsResult = await _context.currentSession.getErrors(file);
-    if (errorsResult is! ErrorsResult) {
-      throw Exception('$errorsResult for $file');
+    if (!file.exists) {
+      throw FileDoesNotExist(path);
     }
-    allErrors.addAll(errorsResult.errors);
+
+    final text = file.readAsStringSync();
+    _parser.parse(StringSource(text, path));
+    return ParsedBlockResultImpl(_parser.block!, _parser.errors!, this);
+  }
+
+  @override
+  Future<List<AnalysisError>> getErrors(String path) async {
+    if (!_resourceProvider.getFile(path).exists) {
+      throw FileDoesNotExist(path);
+    }
+
+    final result = getParsedBlock(path);
+    final block = result.block;
+
+    Iterable<DartBlock> exampleCodeBlocks;
+    if (block is DartBlock) {
+      exampleCodeBlocks = block.documentationComments
+          .expand((comment) => comment.dartCodeBlocks);
+    } else if (block is MarkdownBlock) {
+      exampleCodeBlocks = block.dartCodeBlocks;
+    } else {
+      unreachable();
+    }
+
+    exampleCodeBlocks =
+        exampleCodeBlocks.whereNot((codeBlock) => codeBlock.isIgnored);
+
+    // We use a set to avoid duplicating errors when combining different
+    // sources.
+    final allErrors = <AnalysisError>{...result.errors};
+
+    if (isDartFile(path)) {
+      /// Add the errors in the Dart file itself, not the comments.
+      final errorsResult = await _context.currentSession.getErrors(path);
+      if (errorsResult is! ErrorsResult) {
+        throw Exception('$errorsResult for $path');
+      }
+      allErrors.addAll(errorsResult.errors);
+    }
 
     await Future.wait(
       exampleCodeBlocks.mapIndexed((index, codeBlock) async {
         final analysisBlockPath = p.join(
-          p.dirname(file),
-          '${p.basenameWithoutExtension(file)}_$index.dart',
+          p.dirname(path),
+          '${p.basenameWithoutExtension(path)}_$index.dart',
         );
         final analysisBlock = ComposedDartBlock(
           [
@@ -134,15 +168,6 @@ class DacoAnalyzer implements DacoAnalysisContext, DacoAnalysisSession {
       }),
     );
 
-    return allErrors;
-  }
-
-  @override
-  ParsedBlockResult getParsedBlock(String file) {
-    // TODO(blaugold): handle non existent file
-    // TODO(blaugold): cache results
-    final text = _resourceProvider.getFile(file).readAsStringSync();
-    _parser.parse(StringSource(text, file));
-    return ParsedBlockResultImpl(_parser.block!, _parser.errors!, this);
+    return allErrors.toList();
   }
 }

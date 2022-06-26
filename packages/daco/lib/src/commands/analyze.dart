@@ -75,7 +75,7 @@ class AnalyzeCommand extends DacoCommand {
         progress.finish(message: 'Found issues:');
         for (final error in allErrors) {
           _setExitCode(error);
-          stdout.writeln(_formatError(error));
+          logger.stdout(_formatError(error));
         }
       }
     }

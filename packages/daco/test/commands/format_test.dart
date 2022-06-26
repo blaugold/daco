@@ -14,7 +14,7 @@ void main() {
   });
 
   test('format file', () async {
-    final file = await createFile(
+    final file = await writeFile(
       'test.dart',
       '''
 /// a  a
@@ -43,7 +43,7 @@ CHANGED   ${p.relative(file.path)}
   });
 
   test('formatting of dart file fails', () async {
-    final file = await createFile(
+    final file = await writeFile(
       'test.dart',
       '''
 const a = 'a'
@@ -70,7 +70,7 @@ line 1, column 11 of ${p.prettyUri(file.path)}: Expected to find ';'.
   });
 
   test('formatting of fenced code block fails', () async {
-    final file = await createFile(
+    final file = await writeFile(
       'test.dart',
       '''
 /// ```dart
