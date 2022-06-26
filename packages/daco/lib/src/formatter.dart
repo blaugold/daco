@@ -37,7 +37,11 @@ class DacoFormatter {
   /// Formats the given [source] string containing an entire Dart compilation
   /// unit.
   Future<String> format(String source, {String? path}) async {
-    final parseResult = parseString(text: source, uri: path ?? 'file.dart');
+    final parseResult = parseString(
+      text: source,
+      uri: path ?? 'file.dart',
+      withErrorsInRootBlock: true,
+    );
     _checkForSyntacticErrors(parseResult.errors);
     return _formatBlock(parseResult.block, lineLength: lineLength);
   }

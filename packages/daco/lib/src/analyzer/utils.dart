@@ -14,11 +14,12 @@ import 'result_impl.dart';
 ParseStringResult parseString({
   required String text,
   required String uri,
+  bool withErrorsInRootBlock = false,
 }) {
   final parser = BlockParser();
   final source = StringSource(text, uri);
 
-  parser.parse(source);
+  parser.parse(source, withErrorsInRootBlock: withErrorsInRootBlock);
 
   return ParseStringResultImpl(
     block: parser.block!,

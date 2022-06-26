@@ -36,12 +36,12 @@ class BlockParser {
 
   /// Parses the root [Block] for [source] and stores the result in [block] and
   /// [errors].
-  void parse(Source source) {
+  void parse(Source source, {bool withErrorsInRootBlock = false}) {
     block = null;
     errors = [];
 
     if (isDartFile(source.fullName)) {
-      _parseDartSource(source);
+      _parseDartSource(source, withErrorsInRootBlock: withErrorsInRootBlock);
     } else if (isMarkdownFile(source.fullName)) {
       _parseMarkdownSource(source);
     } else {
@@ -49,7 +49,7 @@ class BlockParser {
     }
   }
 
-  void _parseDartSource(Source source) {
+  void _parseDartSource(Source source, {required bool withErrorsInRootBlock}) {
     final LineInfo lineInfo;
     final CompilationUnit astNode;
     final List<AnalysisError> errors;
@@ -78,7 +78,9 @@ class BlockParser {
       source: source,
     );
 
-    this.errors!.addAll(errors);
+    if (withErrorsInRootBlock) {
+      this.errors!.addAll(errors);
+    }
 
     _parseDocumentationComments(block, astNode);
   }

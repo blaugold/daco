@@ -65,7 +65,7 @@ class AnalyzeCommand extends DacoCommand {
         contextRoot
             .analyzedFiles()
             .where(isDartFile)
-            .map((file) => analyzer.session.getErrors(file)),
+            .map(analyzer.session.getErrors),
       ))
           .expand((errors) => errors);
 

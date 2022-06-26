@@ -12,7 +12,11 @@ Block _parseBlock(String text, String extension, {bool allowErrors = false}) {
 }
 
 ParseStringResult _parseWithErrors(String text, String extension) {
-  final result = parseString(text: text, uri: 'text.$extension');
+  final result = parseString(
+    text: text,
+    uri: 'text.$extension',
+    withErrorsInRootBlock: true,
+  );
   expect(result.errors, isNotEmpty);
   return result;
 }

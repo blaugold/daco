@@ -13,7 +13,6 @@ import 'package:path/path.dart' as p;
 import 'package:pubspec_parse/pubspec_parse.dart';
 import 'package:solvent/solvent.dart';
 
-import '../file_utils.dart';
 import '../utils.dart';
 import 'analysis_context.dart';
 import 'analysis_session.dart';
@@ -103,34 +102,25 @@ class DacoAnalyzer implements DacoAnalysisContext, DacoAnalysisSession {
     final result = getParsedBlock(path);
     final block = result.block;
 
-    Iterable<DartBlock> exampleCodeBlocks;
+    Iterable<DartBlock> dartCodeBlocks;
     if (block is DartBlock) {
-      exampleCodeBlocks = block.documentationComments
+      dartCodeBlocks = block.documentationComments
           .expand((comment) => comment.dartCodeBlocks);
     } else if (block is MarkdownBlock) {
-      exampleCodeBlocks = block.dartCodeBlocks;
+      dartCodeBlocks = block.dartCodeBlocks;
     } else {
       unreachable();
     }
 
-    exampleCodeBlocks =
-        exampleCodeBlocks.whereNot((codeBlock) => codeBlock.isIgnored);
+    dartCodeBlocks =
+        dartCodeBlocks.whereNot((codeBlock) => codeBlock.isIgnored);
 
     // We use a set to avoid duplicating errors when combining different
     // sources.
     final allErrors = <AnalysisError>{...result.errors};
 
-    if (isDartFile(path)) {
-      /// Add the errors in the Dart file itself, not the comments.
-      final errorsResult = await _context.currentSession.getErrors(path);
-      if (errorsResult is! ErrorsResult) {
-        throw Exception('$errorsResult for $path');
-      }
-      allErrors.addAll(errorsResult.errors);
-    }
-
     await Future.wait(
-      exampleCodeBlocks.mapIndexed((index, codeBlock) async {
+      dartCodeBlocks.mapIndexed((index, codeBlock) async {
         final analysisBlockPath = p.join(
           p.dirname(path),
           '${p.basenameWithoutExtension(path)}_$index.dart',

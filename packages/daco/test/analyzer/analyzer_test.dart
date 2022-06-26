@@ -83,14 +83,6 @@ void main() {
         expect(await analyzer.getErrors(path), isEmpty);
       });
 
-      test('error in file itself', () async {
-        final path = writeFile('a.dart', 'const a = "a"');
-        final errors = await analyzer.getErrors(path);
-        expect(errors, hasLength(1));
-        expect(errors.first.offset, 10);
-        expect(errors.first.length, 3);
-      });
-
       group('comment code block', () {
         test('ignores ignored block', () async {
           final path = writeFile(
