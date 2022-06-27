@@ -257,5 +257,150 @@ b
         expect(codeBlock.translateOffset(2), 16);
       });
     });
+
+    group('Dart code examples', () {
+      test('single code block', () {
+        final block = parseMarkdown(
+          '''
+```dart
+const a = 'a';
+```
+''',
+        );
+
+        expect(block.dartCodeExamples, hasLength(1));
+        expect(block.dartCodeExamples.first.codeBlocks, block.dartCodeBlocks);
+      });
+
+      test('multiple single code blocks', () {
+        final block = parseMarkdown(
+          '''
+```dart
+const a = 'a';
+```
+```dart
+const b = 'b';
+```
+''',
+        );
+
+        expect(block.dartCodeExamples, hasLength(2));
+        expect(block.dartCodeExamples[0].codeBlocks, [block.dartCodeBlocks[0]]);
+        expect(block.dartCodeExamples[1].codeBlocks, [block.dartCodeBlocks[1]]);
+      });
+
+      test('multi-part', () {
+        final block = parseMarkdown(
+          '''
+```dart multi_begin
+const a = 'a';
+```
+```dart multi_end
+const b = 'b';
+```
+''',
+        );
+
+        expect(block.dartCodeExamples, hasLength(1));
+        expect(block.dartCodeExamples[0].codeBlocks, block.dartCodeBlocks);
+      });
+
+      test('multiple multi-part', () {
+        final block = parseMarkdown(
+          '''
+```dart multi_begin
+const a = 'a';
+```
+```dart multi_end
+const b = 'b';
+```
+```dart multi_begin
+const c = 'c';
+```
+```dart multi_end
+const d = 'd';
+```
+''',
+        );
+
+        expect(block.dartCodeExamples, hasLength(2));
+        expect(
+          block.dartCodeExamples[0].codeBlocks,
+          block.dartCodeBlocks.sublist(0, 2),
+        );
+        expect(
+          block.dartCodeExamples[1].codeBlocks,
+          block.dartCodeBlocks.sublist(2),
+        );
+      });
+
+      test('single code block and multi-part', () {
+        final block = parseMarkdown(
+          '''
+```dart
+const a = 'a';
+```
+```dart multi_begin
+const b = 'b';
+```
+```dart multi_end
+const c = 'c';
+```
+''',
+        );
+
+        expect(block.dartCodeExamples, hasLength(2));
+        expect(
+          block.dartCodeExamples[0].codeBlocks,
+          block.dartCodeBlocks.sublist(0, 1),
+        );
+        expect(
+          block.dartCodeExamples[1].codeBlocks,
+          block.dartCodeBlocks.sublist(1),
+        );
+      });
+
+      test('skip if code block is ignored', () {
+        final block = parseMarkdown(
+          '''
+```dart ignore
+const a = 'a';
+```
+''',
+        );
+
+        expect(block.dartCodeExamples, isEmpty);
+      });
+
+      test('skip if all code blocks in multi-part are ignored', () {
+        final block = parseMarkdown(
+          '''
+```dart multi_begin ignore
+const a = 'a';
+```
+```dart multi_end ignore
+const b = 'b';
+```
+''',
+        );
+
+        expect(block.dartCodeExamples, isEmpty);
+      });
+
+      test('keep partially ignored multi-part', () {
+        final block = parseMarkdown(
+          '''
+```dart multi_begin
+const a = 'a';
+```
+```dart multi_end ignore
+const b = 'b';
+```
+''',
+        );
+
+        expect(block.dartCodeExamples, hasLength(1));
+      });
+    });
   });
 }

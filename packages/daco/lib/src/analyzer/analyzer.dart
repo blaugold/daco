@@ -121,62 +121,91 @@ class DacoAnalyzer implements DacoAnalysisContext, DacoAnalysisSession {
     final result = getParsedBlock(path);
     final block = result.block;
 
-    Iterable<DartBlock> dartCodeBlocks;
+    Iterable<DartCodeExample> dartCodeExamples;
     if (block is DartBlock) {
-      dartCodeBlocks = block.documentationComments
-          .expand((comment) => comment.dartCodeBlocks);
+      dartCodeExamples = block.documentationComments
+          .expand((comment) => comment.dartCodeExamples);
     } else if (block is MarkdownBlock) {
-      dartCodeBlocks = block.dartCodeBlocks;
+      dartCodeExamples = block.dartCodeExamples;
     } else {
       unreachable();
     }
 
-    dartCodeBlocks =
-        dartCodeBlocks.where((codeBlock) => codeBlock.shouldBeAnalyzed);
+    dartCodeExamples =
+        dartCodeExamples.where((example) => example.shouldBeAnalyzed);
 
     // We use a set to avoid duplicating errors when combining different
     // sources.
     final allErrors = <AnalysisError>{...result.errors};
 
     await Future.wait(
-      dartCodeBlocks.mapIndexed((index, codeBlock) async {
-        final analysisBlockPath = p.join(
+      dartCodeExamples.mapIndexed((index, example) async {
+        final codeExamplePath = p.join(
           p.dirname(path),
           '${p.basenameWithoutExtension(path)}_$index.dart',
         );
-        final analysisBlock = ComposedDartBlock(
-          [
-            if (_publicApiFileUri != null) ...[
-              '// ignore: UNUSED_IMPORT',
-              'import "$_publicApiFileUri";'
-            ],
-            if (codeBlock.isInMainBody) 'Future<void> main() async {',
-            codeBlock,
-            if (codeBlock.isInMainBody) '}',
-          ],
-          uri: analysisBlockPath,
+        final codeExampleLibrary = example.buildExampleLibrary(
+          publicApiFileUri: _publicApiFileUri,
+          uri: codeExamplePath,
         );
 
         _resourceProvider.setOverlay(
-          analysisBlockPath,
-          content: analysisBlock.text,
+          codeExamplePath,
+          content: codeExampleLibrary.text,
           modificationStamp: 0,
         );
 
-        final result =
-            await _context.currentSession.getErrors(analysisBlockPath);
+        final result = await _context.currentSession.getErrors(codeExamplePath);
 
         if (result is! ErrorsResult) {
-          throw Exception('$result for $analysisBlockPath');
+          throw Exception('$result for $codeExamplePath');
         }
 
-        final errors =
-            result.errors.map(analysisBlock.translateAnalysisError).toList();
+        final errors = result.errors
+            .map(codeExampleLibrary.translateAnalysisError)
+            .toList();
 
         allErrors.addAll(errors);
       }),
     );
 
     return allErrors.toList();
+  }
+}
+
+extension on DartCodeExample {
+  ComposedDartBlock buildExampleLibrary({
+    Uri? publicApiFileUri,
+    String? uri,
+  }) {
+    final parts = <Object>[
+      if (publicApiFileUri != null) ...[
+        '// ignore: UNUSED_IMPORT',
+        'import "$publicApiFileUri";',
+        ''
+      ],
+    ];
+
+    final nonMainBlocks = codeBlocks
+        .where((block) => !block.isIgnored && !block.isInMainBody)
+        .toList();
+    final mainBlocks = codeBlocks
+        .where((block) => !block.isIgnored && block.isInMainBody)
+        .toList();
+
+    for (final block in nonMainBlocks) {
+      parts
+        ..add(block)
+        ..add('');
+    }
+
+    if (mainBlocks.isNotEmpty) {
+      parts
+        ..add('Future<void> main() async {')
+        ..addAll(mainBlocks)
+        ..add('}');
+    }
+
+    return ComposedDartBlock(parts, uri: uri);
   }
 }
