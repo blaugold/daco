@@ -158,10 +158,6 @@ class DartBlockImpl extends BlockImpl implements DartBlock {
       !isIgnored && !codeBlockAttributes.contains(CodeBlockAttribute.noFormat);
 
   @override
-  bool get shouldBeAnalyzed =>
-      !isIgnored && !codeBlockAttributes.contains(CodeBlockAttribute.noAnalyze);
-
-  @override
   List<MarkdownBlock> get documentationComments => enclosedBlocks.cast();
 
   void addEnclosedDocumentationComment(
