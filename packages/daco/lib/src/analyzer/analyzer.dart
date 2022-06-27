@@ -1,11 +1,16 @@
+import 'dart:io';
+
 import 'package:analyzer/dart/analysis/analysis_context.dart';
-import 'package:analyzer/dart/analysis/context_builder.dart';
 import 'package:analyzer/dart/analysis/context_root.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/overlay_file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
+// ignore: implementation_imports
+import 'package:analyzer/src/dart/analysis/context_builder.dart';
+// ignore: implementation_imports
+import 'package:analyzer/src/dart/analysis/file_byte_store.dart';
 // ignore: implementation_imports
 import 'package:analyzer/src/string_source.dart';
 import 'package:collection/collection.dart';
@@ -22,6 +27,12 @@ import 'exceptions.dart';
 import 'parser.dart';
 import 'result.dart';
 import 'result_impl.dart';
+
+final _homePath = Platform.isWindows
+    ? Platform.environment['USERPROFILE']!
+    : Platform.environment['HOME']!;
+
+final _byteStorePath = p.join(_homePath, '.dartServer', '.daco');
 
 /// Implementation of [DacoAnalysisContext] and [DacoAnalysisSession] for
 /// analysis of files in a [contextRoot].
@@ -53,8 +64,16 @@ class DacoAnalyzer implements DacoAnalysisContext, DacoAnalysisSession {
   late final _parser = BlockParser(analysisContext: _context);
 
   AnalysisContext _buildContext() {
-    final contextBuilder = ContextBuilder(resourceProvider: _resourceProvider);
-    return contextBuilder.createContext(contextRoot: contextRoot);
+    Directory(_byteStorePath).createSync(recursive: true);
+    final fileByteStore = FileByteStore(_byteStorePath);
+
+    final contextBuilder =
+        ContextBuilderImpl(resourceProvider: _resourceProvider);
+
+    return contextBuilder.createContext(
+      contextRoot: contextRoot,
+      byteStore: fileByteStore,
+    );
   }
 
   Pubspec? _loadPubspec() {
