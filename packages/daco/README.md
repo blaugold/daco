@@ -151,6 +151,24 @@ function before processing:
 void greet({required String name});
 ````
 
+## `no_format`
+
+If example code should not be formatted, it can be annotated with the `no_format`
+attribute:
+
+````dart
+/// Greets the user.
+///
+/// ```dart main no_format
+/// // This is strange formatting.
+/// greet(
+///   name:
+///      'Alice'
+///         );
+/// ```
+void greet({required String name});
+````
+
 # TODO
 
 - [ ] Support formatting of end of line comments

@@ -54,6 +54,9 @@ enum CodeBlockAttribute {
 
   /// The code block contains code for the body of the `main` function.
   main,
+
+  /// The code block should not be formatted.
+  noFormat,
 }
 
 /// A [Block] that contains Dart code.
@@ -66,6 +69,9 @@ abstract class DartBlock extends Block {
 
   /// Whether this block contains code for the body of the `main` function.
   bool get isInMainBody;
+
+  /// Whether this block should be formatted.
+  bool get shouldBeFormatted;
 
   /// The [MarkdownBlock]s for all documentation comments contained in this
   /// block, in lexical order.
