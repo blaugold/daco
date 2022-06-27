@@ -98,6 +98,20 @@ const a = 'a';
           expect(errors, isEmpty);
         });
 
+        test('ignores block with no_analyze attribute', () async {
+          final path = writeFile(
+            'a.dart',
+            '''
+/// ```dart no_analyze
+/// const int a = 'a';
+/// ```
+const a = 'a';
+''',
+          );
+          final errors = await analyzer.getErrors(path);
+          expect(errors, isEmpty);
+        });
+
         test('error in block without attributes', () async {
           final path = writeFile(
             'a.dart',

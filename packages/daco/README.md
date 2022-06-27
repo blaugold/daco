@@ -153,8 +153,8 @@ void greet({required String name});
 
 ## `no_format`
 
-If example code should not be formatted, it can be annotated with the `no_format`
-attribute:
+If example code should not be formatted, it can be annotated with the
+`no_format` attribute:
 
 ````dart
 /// Greets the user.
@@ -168,6 +168,23 @@ attribute:
 /// ```
 void greet({required String name});
 ````
+
+## `no_analyze`
+
+If example code should not be analyzed for semantic errors, it can be annotated
+with the `no_analyze` attribute:
+
+````dart
+/// Greets the user.
+///
+/// ```dart main no_analyze
+/// greet(name: 'Alice') as String;
+/// ```
+void greet({required String name});
+````
+
+Syntactic errors will still be reported. To suppress all errors use the `ignore`
+attribute.
 
 # TODO
 

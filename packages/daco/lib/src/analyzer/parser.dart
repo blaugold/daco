@@ -262,6 +262,9 @@ Iterable<CodeBlockAttribute> _parseCodeBlockAttributes(
       case 'no_format':
         yield CodeBlockAttribute.noFormat;
         break;
+      case 'no_analyze':
+        yield CodeBlockAttribute.noAnalyze;
+        break;
     }
   }
 }

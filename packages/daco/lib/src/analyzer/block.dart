@@ -57,6 +57,9 @@ enum CodeBlockAttribute {
 
   /// The code block should not be formatted.
   noFormat,
+
+  /// The code block should not be analyzed.
+  noAnalyze,
 }
 
 /// A [Block] that contains Dart code.
@@ -72,6 +75,9 @@ abstract class DartBlock extends Block {
 
   /// Whether this block should be formatted.
   bool get shouldBeFormatted;
+
+  /// Whether this block should be analyzed.
+  bool get shouldBeAnalyzed;
 
   /// The [MarkdownBlock]s for all documentation comments contained in this
   /// block, in lexical order.
