@@ -1,3 +1,7 @@
+## 0.2.1+1
+
+ - **PERF**: persist `ByteStore` to cache analysis results ([#12](https://github.com/blaugold/daco/issues/12)). ([f8d054f1](https://github.com/blaugold/daco/commit/f8d054f193b0d95eaf3a36e6981db3ff18efe62d))
+
 ## 0.2.1
 
  - **FEAT**: add `analyze` command ([#11](https://github.com/blaugold/daco/issues/11)). ([6bed9e38](https://github.com/blaugold/daco/commit/6bed9e3898451656062a78313ea0bcc5e5e2f745))
