@@ -132,7 +132,7 @@ class DacoAnalyzer implements DacoAnalysisContext, DacoAnalysisSession {
     }
 
     dartCodeBlocks =
-        dartCodeBlocks.whereNot((codeBlock) => codeBlock.isIgnored);
+        dartCodeBlocks.where((codeBlock) => codeBlock.shouldBeAnalyzed);
 
     // We use a set to avoid duplicating errors when combining different
     // sources.
