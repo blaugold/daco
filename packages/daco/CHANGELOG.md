@@ -1,3 +1,9 @@
+## 0.2.2
+
+ - **FEAT**: multi-part code examples ([#21](https://github.com/blaugold/daco/issues/21)). ([4c3157c2](https://github.com/blaugold/daco/commit/4c3157c2c3bdc1f9f8825fffa0371559a8e76aae))
+ - **FEAT**: add `no_analyze` attribute ([#19](https://github.com/blaugold/daco/issues/19)). ([bcd41bbb](https://github.com/blaugold/daco/commit/bcd41bbb7cf22058bceeb332bd2874e7fcfac7ee))
+ - **FEAT**: add `no_format` attribute ([#18](https://github.com/blaugold/daco/issues/18)). ([6273cf21](https://github.com/blaugold/daco/commit/6273cf214237a4e119fd329af3e45c7af0fba320))
+
 ## 0.2.1+1
 
  - **PERF**: persist `ByteStore` to cache analysis results ([#12](https://github.com/blaugold/daco/issues/12)). ([f8d054f1](https://github.com/blaugold/daco/commit/f8d054f193b0d95eaf3a36e6981db3ff18efe62d))
