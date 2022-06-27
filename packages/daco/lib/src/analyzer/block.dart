@@ -60,6 +60,12 @@ enum CodeBlockAttribute {
 
   /// The code block should not be analyzed.
   noAnalyze,
+
+  /// Marks the beginning of a multi-part code example.
+  multiBeing,
+
+  /// Marks the end of a multi-part code example.
+  multiEnd,
 }
 
 /// A [Block] that contains Dart code.
@@ -76,9 +82,6 @@ abstract class DartBlock extends Block {
   /// Whether this block should be formatted.
   bool get shouldBeFormatted;
 
-  /// Whether this block should be analyzed.
-  bool get shouldBeAnalyzed;
-
   /// The [MarkdownBlock]s for all documentation comments contained in this
   /// block, in lexical order.
   List<MarkdownBlock> get documentationComments;
@@ -93,4 +96,20 @@ abstract class MarkdownBlock extends Block {
   /// The [DartBlock]s for all fenced code blocks contained in this block, in
   /// lexical order.
   List<DartBlock> get dartCodeBlocks;
+
+  /// The [DartCodeExample]s contained with in this block, in lexical order.
+  ///
+  /// These code examples group the [dartCodeBlocks] of this block into complete
+  /// code examples.
+  List<DartCodeExample> get dartCodeExamples;
+}
+
+/// Represents a complete Dart code example, made up out of one or more
+/// [DartBlock]s.
+abstract class DartCodeExample {
+  /// The [DartBlock]s that are part of this code example in lexical order.
+  List<DartBlock> get codeBlocks;
+
+  /// Whether this code example should be analyzed.
+  bool get shouldBeAnalyzed;
 }

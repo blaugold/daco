@@ -147,6 +147,30 @@ const a = 'a';
             '1 positional argument(s) expected, but 0 found.',
           );
         });
+
+        test('error in multi-part code example', () async {
+          final path = writeFile(
+            'a.dart',
+            '''
+/// ```dart multi_begin
+/// const b = 'b';
+/// ```
+/// ```dart multi_end main
+/// print(b);
+/// print();
+/// ```
+const a = 'a';
+''',
+          );
+          final errors = await analyzer.getErrors(path);
+          expect(errors, hasLength(1));
+          expect(errors.first.offset, 101);
+          expect(errors.first.length, 2);
+          expect(
+            errors.first.message,
+            '1 positional argument(s) expected, but 0 found.',
+          );
+        });
       });
     });
 

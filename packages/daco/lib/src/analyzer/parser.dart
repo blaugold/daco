@@ -234,6 +234,59 @@ class BlockParser {
         );
       }
     }
+
+    _parseDartCodeExamples(block);
+  }
+
+  void _parseDartCodeExamples(MarkdownBlockImpl block) {
+    Iterable<List<DartBlock>> codeBlockGroups() sync* {
+      List<DartBlock>? parts;
+      for (final codeBlock in block.dartCodeBlocks) {
+        final isMultiPartBegin = codeBlock.codeBlockAttributes
+            .contains(CodeBlockAttribute.multiBeing);
+        final isMultiPartEnd =
+            codeBlock.codeBlockAttributes.contains(CodeBlockAttribute.multiEnd);
+
+        if (parts == null) {
+          // We are not already in a multi-part example.
+          if (isMultiPartBegin) {
+            // Start a new multi-part code example.
+            parts = [codeBlock];
+          } else {
+            // Just a single part code example.
+            yield [codeBlock];
+          }
+        } else {
+          // We are in a multi-part example.
+          if (isMultiPartBegin) {
+            // The user did not terminate the previous multi-part example, so we
+            // do it for them.
+            yield parts;
+            // Start a new multi-part code example.
+            parts = [codeBlock];
+          } else {
+            parts.add(codeBlock);
+
+            if (isMultiPartEnd) {
+              // Terminate the current multi-part example.
+              yield parts;
+              parts = null;
+            }
+          }
+        }
+      }
+
+      if (parts != null) {
+        // The user did not terminate the current multi-part example, so we
+        // do it for them.
+        yield parts;
+      }
+    }
+
+    codeBlockGroups()
+        .where((group) => group.any((codeBlock) => !codeBlock.isIgnored))
+        .map((codeBlocks) => DartCodeExampleImpl(codeBlocks: codeBlocks))
+        .forEach(block.addDartCodeExamples);
   }
 }
 
@@ -264,6 +317,12 @@ Iterable<CodeBlockAttribute> _parseCodeBlockAttributes(
         break;
       case 'no_analyze':
         yield CodeBlockAttribute.noAnalyze;
+        break;
+      case 'multi_begin':
+        yield CodeBlockAttribute.multiBeing;
+        break;
+      case 'multi_end':
+        yield CodeBlockAttribute.multiEnd;
         break;
     }
   }

@@ -116,23 +116,6 @@ The package which contains the example code is automatically imported.
 
 Example code can be annotated with attributes to influence how it is processed.
 
-## `ignore`
-
-If example code should not be processed, it can be ignored by annotating it with
-the `ignore` attribute.
-
-The example code below, for example, is not valid and would result in an error,
-but it is instead ignored:
-
-````dart
-/// Greets the user.
-///
-/// ```dart ignore
-/// greet(name: ...);
-/// ```
-void greet({required String name});
-````
-
 ## `main`
 
 Example code must represent a valid Dart file. Often it is preferable to write
@@ -148,7 +131,71 @@ function before processing:
 /// ```dart main
 /// greet(name: 'Alice');
 /// ```
-void greet({required String name});
+void greet({required String name}) {}
+````
+
+## `multi_begin` & `multi_end`
+
+Sometimes it is useful to breaker larger examples into multiple code blocks,
+explaining each block individually.
+
+````dart
+/// Greets the user.
+///
+/// The source of the user's name could be an environment variable:
+///
+/// ```dart main multi_begin
+/// var name = Platform.environment['NAME'] || 'Alice';
+/// ```
+///
+/// Let's make sure the name is not empty:
+///
+/// ```dart main
+/// if (name.isEmpty) {
+///   throw ArgumentError.value(name, 'name', 'must not be empty');
+/// }
+/// ```
+///
+/// Finally pass the `name` to `greet`:
+///
+/// ```dart main multi_end
+/// greet(name: name);
+/// ```
+void greet({required String name}) {}
+````
+
+A code block annotated with `multi_begin` marks the beginning of a multi-part
+code example and a code block annotated with `multi_end` the end. The annotated
+code blocks as well as all code blocks in between belong to the same code
+example.
+
+All the code blocks of a multi-part code example are composed into one Dart
+file.
+
+Multiple code blocks annotated with `main` are collected into a single `main`
+function, where each block appears in the same order as in the source file.
+
+The `ignore` and `no_format` attributes can be used on code blocks that are part
+of a multi-part code example and work as usual.
+
+If the `no_analyze` is used on any one of the code blocks the whole code example
+is won't be analyzed.
+
+## `ignore`
+
+If example code should not be processed, it can be ignored by annotating it with
+the `ignore` attribute.
+
+The example code below, for example, is not valid and would result in an error,
+but it is instead ignored:
+
+````dart
+/// Greets the user.
+///
+/// ```dart ignore
+/// greet(name: ...);
+/// ```
+void greet({required String name}) {}
 ````
 
 ## `no_format`
@@ -166,7 +213,7 @@ If example code should not be formatted, it can be annotated with the
 ///      'Alice'
 ///         );
 /// ```
-void greet({required String name});
+void greet({required String name}) {}
 ````
 
 ## `no_analyze`
@@ -180,11 +227,34 @@ with the `no_analyze` attribute:
 /// ```dart main no_analyze
 /// greet(name: 'Alice') as String;
 /// ```
-void greet({required String name});
+void greet({required String name}) {}
 ````
 
 Syntactic errors will still be reported. To suppress all errors use the `ignore`
 attribute.
+
+# Hiding code
+
+Sometime code is required to make a code example complete, but the code is not
+relevant for the reader.
+
+This code can be hidden by placing it in a commented-out code block, while
+making the block part of a multi-part code example.
+
+````dart
+/// Greets the user.
+///
+/// <!--
+/// ```dart multi_begin
+/// const name =  'Alice';
+/// ```
+/// -->
+///
+/// ```dart main multi_end
+/// greet(name: name);
+/// ```
+void greet({required String name}) {}
+````
 
 # TODO
 

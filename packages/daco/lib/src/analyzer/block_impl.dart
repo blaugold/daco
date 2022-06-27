@@ -158,10 +158,6 @@ class DartBlockImpl extends BlockImpl implements DartBlock {
       !isIgnored && !codeBlockAttributes.contains(CodeBlockAttribute.noFormat);
 
   @override
-  bool get shouldBeAnalyzed =>
-      !isIgnored && !codeBlockAttributes.contains(CodeBlockAttribute.noAnalyze);
-
-  @override
   List<MarkdownBlock> get documentationComments => enclosedBlocks.cast();
 
   void addEnclosedDocumentationComment(
@@ -284,6 +280,16 @@ class MarkdownBlockImpl extends BlockImpl implements MarkdownBlock {
     _addEnclosedBlock(block, fencedCodeBlockSpan);
   }
 
+  final List<DartCodeExample> _dartCodeExamples = [];
+
+  @override
+  List<DartCodeExample> get dartCodeExamples =>
+      List.unmodifiable(_dartCodeExamples);
+
+  void addDartCodeExamples(DartCodeExample example) {
+    _dartCodeExamples.add(example);
+  }
+
   @override
   int availableLineLength({required Block of, required int lineLength}) {
     assert(of is DartBlock);
@@ -361,4 +367,17 @@ class MarkdownBlockImpl extends BlockImpl implements MarkdownBlock {
 
     return buffer.toString();
   }
+}
+
+class DartCodeExampleImpl extends DartCodeExample {
+  DartCodeExampleImpl({required this.codeBlocks});
+
+  @override
+  final List<DartBlock> codeBlocks;
+
+  @override
+  bool get shouldBeAnalyzed => codeBlocks.every(
+        (block) =>
+            !block.codeBlockAttributes.contains(CodeBlockAttribute.noAnalyze),
+      );
 }
