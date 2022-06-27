@@ -233,7 +233,7 @@ void greet({required String name}) {}
 Syntactic errors will still be reported. To suppress all errors use the `ignore`
 attribute.
 
-# Hiding code blocks
+# Hiding code
 
 Sometime code is required to make a code example complete, but the code is not
 relevant for the reader.
