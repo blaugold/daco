@@ -252,9 +252,16 @@ Iterable<CodeBlockAttribute> _parseCodeBlockAttributes(
   List<String> attributes,
 ) sync* {
   for (final attribute in attributes) {
-    final value = CodeBlockAttribute.values.asNameMap()[attribute];
-    if (value != null) {
-      yield value;
+    switch (attribute) {
+      case 'ignore':
+        yield CodeBlockAttribute.ignore;
+        break;
+      case 'main':
+        yield CodeBlockAttribute.main;
+        break;
+      case 'no_format':
+        yield CodeBlockAttribute.noFormat;
+        break;
     }
   }
 }

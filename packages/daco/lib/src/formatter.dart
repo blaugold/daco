@@ -140,7 +140,7 @@ class DacoFormatter {
 
     await Future.wait(
       formattedBlock.dartCodeBlocks.map((codeBlock) async {
-        if (codeBlock.isIgnored) {
+        if (!codeBlock.shouldBeFormatted) {
           return;
         }
 

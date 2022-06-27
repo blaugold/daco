@@ -265,7 +265,7 @@ const a = 'a';
         );
       });
 
-      group('attribute main', () {
+      group('main attribute', () {
         test(
           'check code for syntactic errors',
           () => expectSyntacticErrorAt(
@@ -326,6 +326,28 @@ const a = 'a';
             output: '''
 /// ```dart main
 /// // ...
+/// ```
+const a = 'a';
+''',
+          ),
+        );
+      });
+
+      group('no_format attribute', () {
+        test(
+          'do not format code',
+          () => expectFormatterOutput(
+            input: '''
+/// ```dart no_format
+/// /// a  a
+/// const a = 'a';
+/// ```
+const a = 'a';
+''',
+            output: '''
+/// ```dart no_format
+/// /// a  a
+/// const a = 'a';
 /// ```
 const a = 'a';
 ''',

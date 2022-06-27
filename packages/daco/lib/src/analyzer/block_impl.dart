@@ -154,6 +154,10 @@ class DartBlockImpl extends BlockImpl implements DartBlock {
       codeBlockAttributes.contains(CodeBlockAttribute.main);
 
   @override
+  bool get shouldBeFormatted =>
+      !isIgnored && !codeBlockAttributes.contains(CodeBlockAttribute.noFormat);
+
+  @override
   List<MarkdownBlock> get documentationComments => enclosedBlocks.cast();
 
   void addEnclosedDocumentationComment(
