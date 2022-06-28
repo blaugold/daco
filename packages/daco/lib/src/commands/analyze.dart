@@ -2,7 +2,6 @@
 
 import 'dart:io';
 
-import 'package:analyzer/dart/analysis/context_locator.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/source/line_info.dart';
@@ -51,18 +50,17 @@ class AnalyzeCommand extends DacoCommand {
 
   @override
   Future<void> run() async {
-    final contextLocator = ContextLocator();
-    final contextRoots =
-        contextLocator.locateRoots(includedPaths: _includedPaths);
+    final analysisContexts =
+        createAnalysisContextCollection(includedPaths: _includedPaths);
 
-    for (final contextRoot in contextRoots) {
-      final analyzer = DacoAnalyzer(contextRoot: contextRoot);
+    for (final analysisContext in analysisContexts.contexts) {
+      final analyzer = DacoAnalyzer(analysisContext: analysisContext);
 
       final progress =
           logger.progress('Analyzing ${_contextRootDisplayName(analyzer)}');
 
       final allErrors = (await Future.wait(
-        contextRoot
+        analyzer.contextRoot
             .analyzedFiles()
             .where(isDartFile)
             .map(analyzer.session.getErrors),
