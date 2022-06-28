@@ -1,4 +1,3 @@
-import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart' hide Block;
@@ -22,11 +21,7 @@ final _fencedCodeRegExp = RegExp(
 /// Parser for parsing [Block]s.
 class BlockParser {
   /// Creates a parser for parsing [Block]s.
-  BlockParser({this.analysisContext});
-
-  /// The context to use for retrieving the parse results for Dart files, if one
-  /// is available.
-  final AnalysisContext? analysisContext;
+  BlockParser();
 
   /// The block that was parsed during the last call to [parse].
   Block? block;
@@ -41,7 +36,10 @@ class BlockParser {
     errors = [];
 
     if (isDartFile(source.fullName)) {
-      _parseDartSource(source, withErrorsInRootBlock: withErrorsInRootBlock);
+      _parseDartSource(
+        source,
+        withErrorsInRootBlock: withErrorsInRootBlock,
+      );
     } else if (isMarkdownFile(source.fullName)) {
       _parseMarkdownSource(source);
     } else {
@@ -54,23 +52,14 @@ class BlockParser {
     final CompilationUnit astNode;
     final List<AnalysisError> errors;
 
-    final analysisContext = this.analysisContext;
-    if (analysisContext != null) {
-      final result = analysisContext.currentSession
-          .getParsedUnit(source.fullName) as ParsedUnitResult;
-      lineInfo = result.lineInfo;
-      astNode = result.unit;
-      errors = result.errors;
-    } else {
-      final result = parseString(
-        content: source.contents.data,
-        path: source.fullName,
-        throwIfDiagnostics: false,
-      );
-      lineInfo = result.lineInfo;
-      astNode = result.unit;
-      errors = result.errors;
-    }
+    final result = parseString(
+      content: source.contents.data,
+      path: source.fullName,
+      throwIfDiagnostics: false,
+    );
+    lineInfo = result.lineInfo;
+    astNode = result.unit;
+    errors = result.errors;
 
     final block = this.block = DartBlockImpl.root(
       text: source.contents.data,

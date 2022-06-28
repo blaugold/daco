@@ -83,7 +83,7 @@ class DacoAnalyzer implements DacoAnalysisContext, DacoAnalysisSession {
 
   late final _publicApiFileUri = _resolvePublicApiFileUri();
 
-  late final _parser = BlockParser(analysisContext: _context);
+  final _parser = BlockParser();
 
   Pubspec? _loadPubspec() {
     final pubspecFile = _resourceProvider
@@ -109,19 +109,6 @@ class DacoAnalyzer implements DacoAnalysisContext, DacoAnalysisSession {
   }
 
   @override
-  ParsedBlockResult getParsedBlock(String path) {
-    final file = _resourceProvider.getFile(path);
-
-    if (!file.exists) {
-      throw FileDoesNotExist(path);
-    }
-
-    final text = file.readAsStringSync();
-    _parser.parse(StringSource(text, path));
-    return ParsedBlockResultImpl(_parser.block!, _parser.errors!, this);
-  }
-
-  @override
   Future<List<AnalysisError>> getErrors(String path) async {
     final result = await _computeAnalysisResult(path);
 
@@ -137,6 +124,19 @@ class DacoAnalyzer implements DacoAnalysisContext, DacoAnalysisSession {
     }
 
     return allErrors.toList();
+  }
+
+  @override
+  ParsedBlockResult getParsedBlock(String path) {
+    final file = _resourceProvider.getFile(path);
+
+    if (!file.exists) {
+      throw FileDoesNotExist(path);
+    }
+
+    final text = file.readAsStringSync();
+    _parser.parse(StringSource(text, path));
+    return ParsedBlockResultImpl(_parser.block!, _parser.errors!, this);
   }
 
   Future<_FileResult> _computeAnalysisResult(String path) async {
