@@ -1,0 +1,9 @@
+name: daco_example
+publish_to: none
+
+environment:
+  sdk: '>=2.17.1 <3.0.0'
+
+dev_dependencies:
+  daco:
+    path: ..

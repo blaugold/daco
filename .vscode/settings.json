@@ -1,3 +1,7 @@
 {
-  "dart.runPubGetOnPubspecChanges": true
+  "dart.runPubGetOnPubspecChanges": true,
+  // "dart.analyzerLogFile": "analyzer.log",
+  // "dart.analyzerInstrumentationLogFile": "instr.log",
+  // "dart.analyzerPath": "../dart-sdk/sdk/pkg/analysis_server/bin/server.dart",
+  // "dart.analyzerVmServicePort": 9998
 }

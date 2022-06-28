@@ -2,6 +2,8 @@ name: daco
 repository: https://github.com/blaugold/daco
 packages:
   - 'packages/**'
+ignore:
+  - 'packages/daco/tools/analyzer_plugin/**'
 
 ide:
   intellij: false

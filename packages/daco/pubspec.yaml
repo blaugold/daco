@@ -15,6 +15,7 @@ executables:
 
 dependencies:
   analyzer: ^4.1.0
+  analyzer_plugin: ^0.11.0
   ansi_styles: ^0.3.2+1
   args: ^2.3.1
   cli_util: ^0.3.5
