@@ -1,3 +1,7 @@
+## 0.2.2+1
+
+ - **DOCS**: fix spelling. ([269b8091](https://github.com/blaugold/daco/commit/269b8091e40319a5edc8b5a2877c05420c24223b))
+
 ## 0.2.2
 
  - **FEAT**: multi-part code examples ([#21](https://github.com/blaugold/daco/issues/21)). ([4c3157c2](https://github.com/blaugold/daco/commit/4c3157c2c3bdc1f9f8825fffa0371559a8e76aae))
