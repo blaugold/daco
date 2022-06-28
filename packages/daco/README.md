@@ -41,7 +41,7 @@ to 80):
 Future<String> format(String source, {String? path}) async;
 ```
 
-This is useful when writing and updating documentation comments and an edit
+This is useful when writing and updating documentation comments, and an edit
 pushes some text beyond the preferred line length.
 
 Example code in fenced code blocks that is marked as Dart code is formatted:
@@ -82,7 +82,7 @@ recognize them as special and formats them as simple text:
 const foo = 'bar';
 ```
 
-When formatting a preexisting codebase special attention should be paid to the
+When formatting a preexisting codebase, special attention should be paid to the
 location of dartdoc tags after formatting.
 
 # Analyzing
@@ -102,8 +102,8 @@ void greet({required String name}) {}
 
 The example code is not passing the required `name` parameter.
 
-When running `daco analyze`, an error message with the correct error location
-and is printed:
+When running `daco analyze`, an error message with the correct error location is
+printed:
 
 ```shell
 $ daco analyze
@@ -123,7 +123,7 @@ example code as if it were contained in a function, but without the function
 syntax and indentation.
 
 By annotating example code with the `main` attribute the code is wrapped in a
-function before processing:
+`main` function before processing:
 
 ````dart
 /// Greets the user.
@@ -166,28 +166,27 @@ void greet({required String name}) {}
 
 A code block annotated with `multi_begin` marks the beginning of a multi-part
 code example and a code block annotated with `multi_end` the end. The annotated
-code blocks as well as all code blocks in between belong to the same code
+code blocks, as well as all code blocks in between, belong to the same code
 example.
 
 All the code blocks of a multi-part code example are composed into one Dart
+file. Multiple code blocks annotated with `main` are collected into a single
+`main` function, where each block appears in the same order as in the source
 file.
-
-Multiple code blocks annotated with `main` are collected into a single `main`
-function, where each block appears in the same order as in the source file.
 
 The `ignore` and `no_format` attributes can be used on code blocks that are part
 of a multi-part code example and work as usual.
 
-If the `no_analyze` is used on any one of the code blocks the whole code example
-is won't be analyzed.
+If the `no_analyze` is used on any one of the code blocks, the whole code
+example won't be analyzed.
 
 ## `ignore`
 
 If example code should not be processed, it can be ignored by annotating it with
 the `ignore` attribute.
 
-The example code below, for example, is not valid and would result in an error,
-but it is instead ignored:
+The example code below is not valid and would result in an error, but it is
+instead ignored:
 
 ````dart
 /// Greets the user.
@@ -207,7 +206,7 @@ If example code should not be formatted, it can be annotated with the
 /// Greets the user.
 ///
 /// ```dart main no_format
-/// // This is strange formatting.
+/// // Keep this strange formatting.
 /// greet(
 ///   name:
 ///      'Alice'
@@ -235,7 +234,7 @@ attribute.
 
 # Hiding code
 
-Sometime code is required to make a code example complete, but the code is not
+Sometimes code is required to make a code example complete, but the code is not
 relevant for the reader.
 
 This code can be hidden by placing it in a commented-out code block, while
