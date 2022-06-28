@@ -1,4 +1,3 @@
-import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart' hide Block;
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -11,6 +10,8 @@ import '../char_codes.dart';
 import '../file_utils.dart';
 import 'block.dart';
 import 'block_impl.dart';
+import 'composed_block.dart';
+import 'error/analysis_error_utils.dart';
 import 'exceptions.dart';
 
 final _fencedCodeRegExp = RegExp(
@@ -173,26 +174,8 @@ class BlockParser {
         );
       });
 
-      final text = buffer.toString();
-
-      LineInfo? lineInfo;
-      late final ParseStringResult parseResult;
-      const mainBlockPrefix = 'Future<void> main() async {\n';
-      final parseText = isMain ? '$mainBlockPrefix$text\n}' : text;
-      final parseResultOffset = isMain ? -mainBlockPrefix.length : 0;
-
-      if (!isIgnored) {
-        parseResult = parseString(
-          content: parseText,
-          throwIfDiagnostics: false,
-        );
-
-        lineInfo = isMain ? null : parseResult.lineInfo;
-      }
-
       final childBlock = DartBlockImpl.child(
-        text: text,
-        lineInfo: lineInfo,
+        text: buffer.toString(),
         attributes: attributes,
         codeBlockAttributes: codeBlockAttributes,
         lineStartOffsets: lineStartOffsets,
@@ -207,19 +190,28 @@ class BlockParser {
       );
 
       if (!isIgnored) {
-        errors!.addAll(
-          parseResult.errors.map(
-            (error) => childBlock.translateAnalysisError(
-              error,
-              errorOffset: parseResultOffset,
-            ),
-          ),
+        final parseBlock = ComposedDartBlock([
+          if (isMain) 'Future<void> main() async {',
+          childBlock,
+          if (isMain) '}'
+        ]);
+
+        final parseResult = parseString(
+          content: parseBlock.text,
+          throwIfDiagnostics: false,
         );
+
+        final blockErrors = parseResult.errors
+            .map((error) => truncateMultilineError(error, parseResult.lineInfo))
+            .map(parseBlock.translateAnalysisError)
+            .whereType<AnalysisError>();
+
+        errors!.addAll(blockErrors);
 
         _parseDocumentationComments(
           childBlock,
           parseResult.unit,
-          astOffset: parseResultOffset,
+          astOffset: parseBlock.blockOffset(childBlock),
         );
       }
     }
