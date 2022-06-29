@@ -20,8 +20,8 @@ class DacoPlugin extends ServerPlugin {
   DacoPlugin({ResourceProvider? provider})
       : super(resourceProvider: provider ?? PhysicalResourceProvider.INSTANCE);
 
-  /// Runs an instance of [DacoPlugin] within the analysis server process, in
-  /// an isolate spawned by the analysis server.
+  /// Runs an instance of [DacoPlugin] within the analysis server process, in an
+  /// isolate spawned by the analysis server.
   static void runLocally(SendPort sendPort) {
     ServerPluginStarter(DacoPlugin()).start(sendPort);
   }

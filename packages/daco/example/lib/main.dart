@@ -5,9 +5,8 @@
 ///     const e = 0;
 ///   }
 /// }
-/// void main() {
 ///
-/// }
+/// void main() {}
 /// ```
 ///
 /// ```dart main

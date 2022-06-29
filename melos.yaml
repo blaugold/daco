@@ -39,9 +39,12 @@ scripts:
     run: dart test
     exec:
       concurrency: 1
+    select-package:
+      dir-exists: test
 
   build:prettier_server: cd packages/daco/prettier-server && npm run build
 
   version:
-    description: Hook for the version command that updates version numbers in files.
+    description:
+      Hook for the version command that updates version numbers in files.
     run: dart tool/update_versions.dart

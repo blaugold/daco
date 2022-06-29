@@ -3,8 +3,8 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart';
 
 /// Splits multiline [HighlightRegion]s into multiple regions.
 ///
-/// Multiline regions will be split at the end of the line and line endings
-/// and indenting will be included in the tokens.
+/// Multiline regions will be split at the end of the line and line endings and
+/// indenting will be included in the tokens.
 Iterable<HighlightRegion> splitMultilineRegion(
   HighlightRegion region,
   LineInfo lineInfo,
