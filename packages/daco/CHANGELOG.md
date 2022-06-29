@@ -1,3 +1,7 @@
+## 0.2.3+1
+
+ - **FIX**: lower bound for `path` dependency. ([131e70af](https://github.com/blaugold/daco/commit/131e70af028cefae9dec1eccf7b0d147eef662e9))
+
 ## 0.2.3
 
  - **FEAT**: add analyzer plugin ([#22](https://github.com/blaugold/daco/issues/22)). ([c284a619](https://github.com/blaugold/daco/commit/c284a619cba1e35e8423d94f68fa6dca0708723a))
