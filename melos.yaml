@@ -11,6 +11,7 @@ ide:
 command:
   bootstrap:
     usePubspecOverrides: true
+    runPubGetInParallel: false
   version:
     linkToCommits: true
     branch: main
