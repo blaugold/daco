@@ -87,7 +87,14 @@ class DacoPlugin extends ServerPlugin {
   }) async {
     if (isDartFile(path) && analysisContext.contextRoot.isAnalyzed(path)) {
       await _sendAnalysisErrorsForFile(analysisContext, path);
-      sendNotificationsForFile(path);
+
+      final shouldSendHighlights = subscriptionManager.hasSubscriptionForFile(
+        path,
+        AnalysisService.HIGHLIGHTS,
+      );
+      if (shouldSendHighlights) {
+        await sendHighlightsNotification(path);
+      }
     }
   }
 
@@ -115,8 +122,11 @@ class DacoPlugin extends ServerPlugin {
     AnalysisContext? context;
     try {
       context = _contextCollection?.contextFor(path);
-    } catch (e) {}
+      // ignore: empty_catches, avoid_catching_errors
+    } on StateError {}
     if (context == null) {
+      // We only send highlights for files that are analyzed in the
+      // contextCollection.
       return;
     }
 

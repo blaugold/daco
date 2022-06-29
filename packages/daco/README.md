@@ -3,6 +3,13 @@
 
 A tool for maintaining **Da**rt **co**mments (daco).
 
+- Format doc comments as Markdown
+- Format Dart code examples
+- Analyze Dart code examples
+- Analyzer plugin
+  - Analyzes Dart code examples and provides errors
+  - Highlights Dart code examples
+
 > This package is in an early stage of development. Please file an
 > [issue][issues] if you find a bug or start a [discussion][discussions] if you
 > have a question.
@@ -21,6 +28,23 @@ A tool for maintaining **Da**rt **co**mments (daco).
 
    ```shell
    daco format .
+   ```
+
+# Install analyzer plugin
+
+1. Add `daco` as a development dependency to the each package where the plugin
+   should be active:
+
+   ```shell
+   dart pub add --dev daco
+   ```
+
+1. Enable the plugin in the package's `analysis_options.yaml`:
+
+   ```yaml
+   analyzer:
+     plugins:
+       - daco
    ```
 
 # Formatting

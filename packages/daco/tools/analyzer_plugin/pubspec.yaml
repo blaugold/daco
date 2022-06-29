@@ -5,6 +5,6 @@ environment:
   sdk: '>=2.17.1 <3.0.0'
 
 dependencies:
-  # daco: any # TODO: automate updating to the exact version of daco
   analyzer_plugin: ^0.11.0
+  daco: 0.2.2+1 # TODO: automate updating to the exact version of daco
   web_socket_channel: ^2.2.0
