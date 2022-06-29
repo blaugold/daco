@@ -1,3 +1,7 @@
+## 0.2.3
+
+ - **FEAT**: add analyzer plugin ([#22](https://github.com/blaugold/daco/issues/22)). ([c284a619](https://github.com/blaugold/daco/commit/c284a619cba1e35e8423d94f68fa6dca0708723a))
+
 ## 0.2.2+1
 
  - **DOCS**: fix spelling. ([269b8091](https://github.com/blaugold/daco/commit/269b8091e40319a5edc8b5a2877c05420c24223b))
