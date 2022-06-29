@@ -1,5 +1,4 @@
-import 'package:analyzer/dart/analysis/context_locator.dart';
-import 'package:analyzer/dart/analysis/context_root.dart';
+import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/file_system/overlay_file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:daco/src/analyzer/analyzer.dart';
@@ -9,8 +8,8 @@ import 'package:test/test.dart';
 
 import '../test_utils.dart';
 
-late ContextRoot contextRoot;
 late OverlayResourceProvider resourceProvider;
+late AnalysisContext analysisContext;
 late DacoAnalyzer analyzer;
 
 String writeFile(String path, String content) {
@@ -31,15 +30,11 @@ void main() {
   setUp(() {
     resourceProvider =
         OverlayResourceProvider(PhysicalResourceProvider.INSTANCE);
-
-    final contextLocator = ContextLocator(resourceProvider: resourceProvider);
-    contextRoot =
-        contextLocator.locateRoots(includedPaths: [sandboxDir!.path]).first;
-
-    analyzer = DacoAnalyzer(
-      contextRoot: contextRoot,
+    analysisContext = createAnalysisContextCollection(
+      includedPaths: [sandboxDir!.path],
       resourceProvider: resourceProvider,
-    );
+    ).contexts.first;
+    analyzer = DacoAnalyzer(analysisContext: analysisContext);
   });
 
   group('getParsedBlock', () {

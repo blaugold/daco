@@ -1,6 +1,7 @@
 # Files and directories created by pub.
 .dart_tool/
 .packages
+pubspec_overrides.yaml
 
 # Conventional directory for build outputs.
 build/
@@ -14,3 +15,5 @@ pubspec.lock
 
 # File to store some temporary notes.
 SCRATCH.md
+
+*.log*

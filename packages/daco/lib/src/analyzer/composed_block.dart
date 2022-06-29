@@ -37,6 +37,10 @@ class ComposedBlock<T extends Block> {
 
     return ComposedBlockOffset._(block, offset - span.offset);
   }
+
+  /// Returns the offset to the start of [block] in [text].
+  int blockOffset(T block) =>
+      _blocks.entries.where((entry) => entry.value == block).first.key.offset;
 }
 
 String _joinParts<T extends Block>(
@@ -95,14 +99,14 @@ class ComposedDartBlock extends ComposedBlock<DartBlock> {
 
   /// Translates an [AnalysisError], that was discovered in [text], to the
   /// location in the source of the [Block] that contains the error.
-  AnalysisError translateAnalysisError(AnalysisError error) {
+  AnalysisError? translateAnalysisError(AnalysisError error) {
     // Translates error to be relative to the [Document] of the
     // composed [DartSource] where the error occurred.
 
     final offset = translateOffset(error.offset);
     if (offset == null) {
       // The error occurred in the code that was added around the DartBlocks.
-      return error;
+      return null;
     }
 
     return AnalysisError.forValues(

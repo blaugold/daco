@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:analyzer/dart/analysis/analysis_context.dart';
+import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/dart/analysis/context_root.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/error/error.dart';
@@ -8,11 +9,15 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/overlay_file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 // ignore: implementation_imports
-import 'package:analyzer/src/dart/analysis/context_builder.dart';
+import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
+// ignore: implementation_imports
+import 'package:analyzer/src/dart/analysis/byte_store.dart';
 // ignore: implementation_imports
 import 'package:analyzer/src/dart/analysis/file_byte_store.dart';
 // ignore: implementation_imports
 import 'package:analyzer/src/string_source.dart';
+import 'package:analyzer_plugin/protocol/protocol_common.dart'
+    hide AnalysisError;
 import 'package:collection/collection.dart';
 import 'package:path/path.dart' as p;
 import 'package:pubspec_parse/pubspec_parse.dart';
@@ -23,7 +28,10 @@ import 'analysis_context.dart';
 import 'analysis_session.dart';
 import 'block.dart';
 import 'composed_block.dart';
+import 'error/analysis_error_utils.dart';
 import 'exceptions.dart';
+import 'highlight/compute_highlights.dart';
+import 'highlight/highlight_region_utils.dart';
 import 'parser.dart';
 import 'result.dart';
 import 'result_impl.dart';
@@ -34,17 +42,40 @@ final _homePath = Platform.isWindows
 
 final _byteStorePath = p.join(_homePath, '.dartServer', '.daco');
 
+/// Creates the [ByteStore] that is used by daco.
+ByteStore createByteStore() {
+  Directory(_byteStorePath).createSync(recursive: true);
+  return FileByteStore(_byteStorePath);
+}
+
+/// Creates an [AnalysisContextCollection] for use by an [DacoAnalyzer].
+AnalysisContextCollection createAnalysisContextCollection({
+  required List<String> includedPaths,
+  ResourceProvider? resourceProvider,
+}) =>
+    AnalysisContextCollectionImpl(
+      includedPaths: includedPaths,
+      byteStore: createByteStore(),
+      resourceProvider: resourceProvider is OverlayResourceProvider
+          ? resourceProvider
+          : OverlayResourceProvider(PhysicalResourceProvider.INSTANCE),
+    );
+
 /// Implementation of [DacoAnalysisContext] and [DacoAnalysisSession] for
 /// analysis of files in a [contextRoot].
 class DacoAnalyzer implements DacoAnalysisContext, DacoAnalysisSession {
   /// Creates a new [DacoAnalyzer] for analysis of files in the given
   /// [contextRoot].
   DacoAnalyzer({
-    required this.contextRoot,
-    ResourceProvider? resourceProvider,
-  }) : _resourceProvider = OverlayResourceProvider(
-          resourceProvider ?? PhysicalResourceProvider.INSTANCE,
-        );
+    required AnalysisContext analysisContext,
+  })  : _context = analysisContext,
+        _resourceProvider = analysisContext.contextRoot.resourceProvider
+            as OverlayResourceProvider,
+        contextRoot = analysisContext.contextRoot;
+
+  final AnalysisContext _context;
+
+  final OverlayResourceProvider _resourceProvider;
 
   @override
   final ContextRoot contextRoot;
@@ -57,24 +88,7 @@ class DacoAnalyzer implements DacoAnalysisContext, DacoAnalysisSession {
 
   late final _publicApiFileUri = _resolvePublicApiFileUri();
 
-  final OverlayResourceProvider _resourceProvider;
-
-  late final _context = _buildContext();
-
-  late final _parser = BlockParser(analysisContext: _context);
-
-  AnalysisContext _buildContext() {
-    Directory(_byteStorePath).createSync(recursive: true);
-    final fileByteStore = FileByteStore(_byteStorePath);
-
-    final contextBuilder =
-        ContextBuilderImpl(resourceProvider: _resourceProvider);
-
-    return contextBuilder.createContext(
-      contextRoot: contextRoot,
-      byteStore: fileByteStore,
-    );
-  }
+  final _parser = BlockParser();
 
   Pubspec? _loadPubspec() {
     final pubspecFile = _resourceProvider
@@ -100,6 +114,77 @@ class DacoAnalyzer implements DacoAnalysisContext, DacoAnalysisSession {
   }
 
   @override
+  Future<List<AnalysisError>> getErrors(String path) async {
+    final result = await _computeAnalysisResult(path);
+
+    // We use a set to avoid duplicating errors when combining different
+    // sources.
+    final allErrors = <AnalysisError>{...result.parsedBlockResult.errors};
+
+    for (final codeExampleResult in result.codeExampleResults) {
+      allErrors.addAll(
+        codeExampleResult.resolvedUnitResult.errors
+            .map(
+              (error) => truncateMultilineError(
+                error,
+                codeExampleResult.resolvedUnitResult.lineInfo,
+              ),
+            )
+            .map(codeExampleResult.composedLibrary.translateAnalysisError)
+            .whereType(),
+      );
+    }
+
+    return allErrors.toList();
+  }
+
+  @override
+  Future<List<HighlightRegion>> getHighlightRegions(String path) async {
+    // TODO(blaugold): handle characters without highlight region so they
+    // aren't marked as comment
+
+    final allRegions = <HighlightRegion>[];
+
+    final result = await _computeAnalysisResult(path);
+    for (final codeExampleResult in result.codeExampleResults) {
+      final highlightComputer =
+          DartUnitHighlightsComputer(codeExampleResult.resolvedUnitResult.unit);
+      var regions = highlightComputer.compute();
+
+      // When a code example is contained within in documentation comment all
+      // it's lines are prefixed with '///' in the source. Multiline highlight
+      // regions calculated here don't take this into account must be split
+      // before their offsets are translated to the root block.
+      regions = regions
+          .expand(
+            (region) => splitMultilineRegion(
+              region,
+              codeExampleResult.resolvedUnitResult.lineInfo,
+            ),
+          )
+          .toList();
+
+      for (final region in regions) {
+        final composedLibrary = codeExampleResult.composedLibrary;
+        final translatedOffset = composedLibrary.translateOffset(region.offset);
+        if (translatedOffset == null) {
+          // This region is from code that was injected, so we skip it.
+          continue;
+        }
+
+        // Translates offset to source root block that contains the
+        // originating block.
+        region.offset =
+            translatedOffset.block.translateOffset(translatedOffset.offset);
+
+        allRegions.add(region);
+      }
+    }
+
+    return allRegions;
+  }
+
+  @override
   ParsedBlockResult getParsedBlock(String path) {
     final file = _resourceProvider.getFile(path);
 
@@ -112,65 +197,93 @@ class DacoAnalyzer implements DacoAnalysisContext, DacoAnalysisSession {
     return ParsedBlockResultImpl(_parser.block!, _parser.errors!, this);
   }
 
-  @override
-  Future<List<AnalysisError>> getErrors(String path) async {
+  Future<_FileResult> _computeAnalysisResult(String path) async {
     if (!_resourceProvider.getFile(path).exists) {
       throw FileDoesNotExist(path);
     }
 
-    final result = getParsedBlock(path);
-    final block = result.block;
+    final parsedBlockResult = getParsedBlock(path);
+    final block = parsedBlockResult.block;
 
-    Iterable<DartCodeExample> dartCodeExamples;
+    Iterable<DartCodeExample> codeExamples;
     if (block is DartBlock) {
-      dartCodeExamples = block.documentationComments
+      codeExamples = block.documentationComments
           .expand((comment) => comment.dartCodeExamples);
     } else if (block is MarkdownBlock) {
-      dartCodeExamples = block.dartCodeExamples;
+      codeExamples = block.dartCodeExamples;
     } else {
       unreachable();
     }
 
-    dartCodeExamples =
-        dartCodeExamples.where((example) => example.shouldBeAnalyzed);
+    codeExamples = codeExamples.where((example) => example.shouldBeAnalyzed);
 
-    // We use a set to avoid duplicating errors when combining different
-    // sources.
-    final allErrors = <AnalysisError>{...result.errors};
+    final codeExampleResults = await Future.wait(
+      codeExamples.mapIndexed((index, example) async {
+        final now = DateTime.now().millisecondsSinceEpoch;
 
-    await Future.wait(
-      dartCodeExamples.mapIndexed((index, example) async {
         final codeExamplePath = p.join(
           p.dirname(path),
           '${p.basenameWithoutExtension(path)}_$index.dart',
         );
-        final codeExampleLibrary = example.buildExampleLibrary(
+        final composedLibrary = example.buildExampleLibrary(
           publicApiFileUri: _publicApiFileUri,
           uri: codeExamplePath,
         );
 
         _resourceProvider.setOverlay(
           codeExamplePath,
-          content: codeExampleLibrary.text,
-          modificationStamp: 0,
+          content: composedLibrary.text,
+          modificationStamp: now,
         );
 
-        final result = await _context.currentSession.getErrors(codeExamplePath);
+        _context.changeFile(codeExamplePath);
+        await _context.applyPendingFileChanges();
 
-        if (result is! ErrorsResult) {
+        final result =
+            await _context.currentSession.getResolvedUnit(codeExamplePath);
+
+        if (result is! ResolvedUnitResult) {
           throw Exception('$result for $codeExamplePath');
         }
 
-        final errors = result.errors
-            .map(codeExampleLibrary.translateAnalysisError)
-            .toList();
-
-        allErrors.addAll(errors);
+        return _CodeExampleResult(
+          example: example,
+          composedLibrary: composedLibrary,
+          resolvedUnitResult: result,
+        );
       }),
     );
 
-    return allErrors.toList();
+    return _FileResult(
+      path: path,
+      parsedBlockResult: parsedBlockResult,
+      codeExampleResults: codeExampleResults,
+    );
   }
+}
+
+class _FileResult {
+  _FileResult({
+    required this.path,
+    required this.parsedBlockResult,
+    required this.codeExampleResults,
+  });
+
+  final String path;
+  final ParsedBlockResult parsedBlockResult;
+  final List<_CodeExampleResult> codeExampleResults;
+}
+
+class _CodeExampleResult {
+  _CodeExampleResult({
+    required this.example,
+    required this.composedLibrary,
+    required this.resolvedUnitResult,
+  });
+
+  final DartCodeExample example;
+  final ComposedDartBlock composedLibrary;
+  final ResolvedUnitResult resolvedUnitResult;
 }
 
 extension on DartCodeExample {
