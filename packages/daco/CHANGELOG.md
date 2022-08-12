@@ -1,3 +1,7 @@
+## 0.2.3+2
+
+ - **FIX**: upgrade `analyzer` dependencies. ([d767ee2c](https://github.com/blaugold/daco/commit/d767ee2c0919c501ae15879efd23829a81e1f684))
+
 ## 0.2.3+1
 
  - **FIX**: lower bound for `path` dependency. ([131e70af](https://github.com/blaugold/daco/commit/131e70af028cefae9dec1eccf7b0d147eef662e9))
