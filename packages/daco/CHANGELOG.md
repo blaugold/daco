@@ -1,3 +1,7 @@
+## 0.2.4
+
+ - **FEAT**: support installing `daco` locally ([#26](https://github.com/blaugold/daco/issues/26)). ([f3b9f50c](https://github.com/blaugold/daco/commit/f3b9f50cdd5f23ecd7c5ed9316e8f5aadb9efd51))
+
 ## 0.2.3+2
 
  - **FIX**: upgrade `analyzer` dependencies. ([d767ee2c](https://github.com/blaugold/daco/commit/d767ee2c0919c501ae15879efd23829a81e1f684))
