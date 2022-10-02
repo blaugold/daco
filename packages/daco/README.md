@@ -18,11 +18,28 @@ A tool for maintaining **Da**rt **co**mments (daco).
 
 1. Make sure you have a recent version of NodeJS (>=14) installed and on the
    path. daco uses prettier to format Markdown.
+
 1. Install daco globally:
 
    ```shell
    dart pub global activate daco
    ```
+
+1. Optional: Install daco locally:
+
+   ```shell
+   dart pub add --dev daco
+   ```
+
+   When daco is executed within your project, the version that was resolved by
+   `pub get` will be used. To fully lock the version of daco you either need to
+   specify a fixed version (e.g. no `^`) in your `pubspec.yaml` or check
+   `pubspec.lock` into your version control system. The latter option is
+   recommended because it gives `pub get` more flexibility to resolve
+   dependencies.
+
+   By doing this you can ensure that all contributors to a project as well as
+   the CI/CD pipeline use the same version of daco.
 
 1. Format the Dart files within the current directory:
 
