@@ -1,3 +1,7 @@
+## 0.2.5
+
+ - **FEAT**: upgrade `cli_launcher` ([#27](https://github.com/blaugold/daco/issues/27)). ([fc2c463e](https://github.com/blaugold/daco/commit/fc2c463e336cdacc721da8acecff04341ccb4238))
+
 ## 0.2.4
 
  - **FEAT**: support installing `daco` locally ([#26](https://github.com/blaugold/daco/issues/26)). ([f3b9f50c](https://github.com/blaugold/daco/commit/f3b9f50cdd5f23ecd7c5ed9316e8f5aadb9efd51))
