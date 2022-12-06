@@ -31,25 +31,20 @@ class DacoCommandRunner extends CommandRunner<void> {
   final DacoLogger? logger;
 }
 
-class DacoLauncher extends Launcher {
-  DacoLauncher() : super(PackageExecutable('daco', 'daco'));
-
-  @override
-  Future<void> run(
-    List<String> arguments,
-    InstallationLocation location,
-  ) async {
-    try {
-      await DacoCommandRunner().run(arguments);
-    } on UsageException catch (error) {
-      exitCode = 1;
-      stderr.write(error);
-      // ignore: avoid_catches_without_on_clauses
-    } catch (error, stackTrace) {
-      exitCode = 1;
-      stderr
-        ..writeln('Unexpected error: $error')
-        ..writeln(stackTrace);
-    }
+Future<void> dacoEntryPoint(
+  List<String> arguments,
+  LaunchContext location,
+) async {
+  try {
+    await DacoCommandRunner().run(arguments);
+  } on UsageException catch (error) {
+    exitCode = 1;
+    stderr.write(error);
+    // ignore: avoid_catches_without_on_clauses
+  } catch (error, stackTrace) {
+    exitCode = 1;
+    stderr
+      ..writeln('Unexpected error: $error')
+      ..writeln(stackTrace);
   }
 }
