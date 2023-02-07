@@ -1,3 +1,5 @@
+## 0.2.5+0
+
 ## 0.2.5
 
  - **FEAT**: upgrade `cli_launcher` ([#27](https://github.com/blaugold/daco/issues/27)). ([fc2c463e](https://github.com/blaugold/daco/commit/fc2c463e336cdacc721da8acecff04341ccb4238))
