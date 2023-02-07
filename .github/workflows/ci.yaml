@@ -27,7 +27,7 @@ jobs:
       - name: Activate daco
         run: melos activate
       - name: Check formatting of Dart code
-        run: melos format-check
+        run: melos format:check
 
   analyze:
     timeout-minutes: 15
