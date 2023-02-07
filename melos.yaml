@@ -1,7 +1,6 @@
 name: daco
 repository: https://github.com/blaugold/daco
 packages:
-  - .
   - packages/daco
   - packages/daco/example
 
