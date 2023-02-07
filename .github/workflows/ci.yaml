@@ -1,5 +1,8 @@
 name: CI
 
+env:
+  MELSO_VERSION: 3.0.0-dev.0
+
 on:
   push:
     branches:
@@ -19,10 +22,12 @@ jobs:
         uses: dart-lang/setup-dart@v1
       - name: Setup Melos
         uses: bluefireteam/melos-action@v2
+        with:
+          melos-version: ${{ env.MELSO_VERSION }}
       - name: Activate daco
         run: melos activate
       - name: Check formatting of Dart code
-        run: melos format-check
+        run: melos format:check
 
   analyze:
     timeout-minutes: 15
@@ -34,6 +39,8 @@ jobs:
         uses: dart-lang/setup-dart@v1
       - name: Setup Melos
         uses: bluefireteam/melos-action@v2
+        with:
+          melos-version: ${{ env.MELSO_VERSION }}
       - name: Analyze Dart packages
         uses: invertase/github-action-dart-analyzer@v1
         with:
@@ -54,6 +61,8 @@ jobs:
         uses: dart-lang/setup-dart@v1
       - name: Setup Melos
         uses: bluefireteam/melos-action@v2
+        with:
+          melos-version: ${{ env.MELSO_VERSION }}
       - name: Activate daco
         run: melos activate
       - name: Run tests

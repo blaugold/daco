@@ -1,20 +1,20 @@
 name: daco
 repository: https://github.com/blaugold/daco
 packages:
-  - .
-  - 'packages/daco'
-  - 'packages/daco/example'
+  - packages/daco
+  - packages/daco/example
 
 ide:
   intellij: false
 
 command:
-  bootstrap:
-    usePubspecOverrides: true
-    runPubGetInParallel: false
   version:
-    linkToCommits: true
     branch: main
+    hooks:
+      preCommit:
+        description:
+          Hook for the version command that updates version numbers in files.
+        run: dart tool/update_versions.dart && git add .
 
 scripts:
   activate:
@@ -27,7 +27,7 @@ scripts:
     description: Formats Dart code in the repository with daco.
     run: daco format .
 
-  format-check:
+  format:check:
     description: Checks formatting of Dart code in the repository with daco.
     run: daco format --set-exit-if-changed .
 
@@ -40,12 +40,7 @@ scripts:
     run: dart test
     exec:
       concurrency: 1
-    select-package:
-      dir-exists: test
+    packageFilters:
+      dirExists: test
 
   build:prettier_server: cd packages/daco/prettier-server && npm run build
-
-  version:
-    description:
-      Hook for the version command that updates version numbers in files.
-    run: dart tool/update_versions.dart && git add .
