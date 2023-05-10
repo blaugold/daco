@@ -156,7 +156,7 @@ class DartUnitHighlightsComputer {
         grandParent.parent is InstanceCreationExpression) {
       // new Class()
       type = HighlightRegionType.CONSTRUCTOR;
-    } else if (element.isEnum) {
+    } else if (element is EnumElement) {
       type = HighlightRegionType.ENUM;
     } else {
       type = HighlightRegionType.CLASS;
@@ -722,7 +722,7 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitEnumConstantDeclaration(EnumConstantDeclaration node) {
-    computer._addRegion_node(
+    computer._addRegion_token(
       node.name,
       HighlightRegionType.ENUM_CONSTANT,
     );
@@ -738,7 +738,7 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitExportDirective(ExportDirective node) {
     computer._addRegion_node(node, HighlightRegionType.DIRECTIVE);
-    computer._addRegion_token(node.keyword, HighlightRegionType.BUILT_IN);
+    computer._addRegion_token(node.exportKeyword, HighlightRegionType.BUILT_IN);
     _addRegions_configurations(node.configurations);
     super.visitExportDirective(node);
   }
@@ -790,8 +790,8 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
     if (element is FieldFormalParameterElement) {
       final field = element.field;
       if (field != null) {
-        computer._addRegion_node(
-          node.identifier,
+        computer._addRegion_token(
+          node.name,
           HighlightRegionType.INSTANCE_FIELD_REFERENCE,
         );
       }
@@ -937,7 +937,7 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitImportDirective(ImportDirective node) {
     computer._addRegion_node(node, HighlightRegionType.DIRECTIVE);
-    computer._addRegion_token(node.keyword, HighlightRegionType.BUILT_IN);
+    computer._addRegion_token(node.importKeyword, HighlightRegionType.BUILT_IN);
     computer._addRegion_token(
       node.deferredKeyword,
       HighlightRegionType.BUILT_IN,
@@ -976,7 +976,10 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitLibraryDirective(LibraryDirective node) {
     computer._addRegion_node(node, HighlightRegionType.DIRECTIVE);
-    computer._addRegion_token(node.keyword, HighlightRegionType.BUILT_IN);
+    computer._addRegion_token(
+      node.libraryKeyword,
+      HighlightRegionType.BUILT_IN,
+    );
     super.visitLibraryDirective(node);
   }
 
@@ -1058,7 +1061,7 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitPartDirective(PartDirective node) {
     computer._addRegion_node(node, HighlightRegionType.DIRECTIVE);
-    computer._addRegion_token(node.keyword, HighlightRegionType.BUILT_IN);
+    computer._addRegion_token(node.partKeyword, HighlightRegionType.BUILT_IN);
     super.visitPartDirective(node);
   }
 
@@ -1146,8 +1149,8 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
       HighlightRegionType.KEYWORD,
     );
 
-    computer._addRegion_node(
-      node.identifier,
+    computer._addRegion_token(
+      node.name,
       HighlightRegionType.PARAMETER_DECLARATION,
     );
 

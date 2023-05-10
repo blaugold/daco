@@ -9,12 +9,12 @@ AnalysisError truncateMultilineError(AnalysisError error, LineInfo lineInfo) {
   final problemMessage =
       _truncateMultilineDiagnosticMessage(error.problemMessage, lineInfo);
   return AnalysisError.forValues(
-    error.source,
-    problemMessage.offset,
-    problemMessage.length,
-    error.errorCode,
-    problemMessage.messageText(includeUrl: true),
-    error.correctionMessage,
+    source: error.source,
+    offset: problemMessage.offset,
+    length: problemMessage.length,
+    errorCode: error.errorCode,
+    message: problemMessage.messageText(includeUrl: true),
+    correctionMessage: error.correctionMessage,
     contextMessages: error.contextMessages
         .map(
           (message) => _truncateMultilineDiagnosticMessage(message, lineInfo),
@@ -39,8 +39,7 @@ DiagnosticMessage _truncateMultilineDiagnosticMessage(
 
   return DiagnosticMessageImpl(
     filePath: message.filePath,
-    // ignore: deprecated_member_use
-    message: message.message,
+    message: message.messageText(includeUrl: false),
     url: message.url,
     offset: message.offset,
     length: truncatedLength,

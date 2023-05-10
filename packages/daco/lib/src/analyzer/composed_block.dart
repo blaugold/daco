@@ -110,12 +110,12 @@ class ComposedDartBlock extends ComposedBlock<DartBlock> {
     }
 
     return AnalysisError.forValues(
-      offset.block.source,
-      offset.block.translateOffset(offset.offset),
-      error.length,
-      error.errorCode,
-      error.message,
-      error.correctionMessage,
+      source: offset.block.source,
+      offset: offset.block.translateOffset(offset.offset),
+      length: error.length,
+      errorCode: error.errorCode,
+      message: error.message,
+      correctionMessage: error.correctionMessage,
     );
   }
 }

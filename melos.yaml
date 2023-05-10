@@ -20,7 +20,7 @@ scripts:
   activate:
     description: Activates the local version of daco globally.
     exec: dart pub global activate --source path . --overwrite
-    select-package:
+    packageFilters:
       scope: daco
 
   format:

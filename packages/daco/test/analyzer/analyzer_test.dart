@@ -135,11 +135,11 @@ const a = 'a';
           );
           final errors = await analyzer.getErrors(path);
           expect(errors, hasLength(1));
-          expect(errors.first.offset, 26);
-          expect(errors.first.length, 2);
+          expect(errors.first.offset, 27);
+          expect(errors.first.length, 1);
           expect(
             errors.first.message,
-            '1 positional argument(s) expected, but 0 found.',
+            "1 positional argument expected by 'print', but 0 found.",
           );
         });
 
@@ -159,11 +159,11 @@ const a = 'a';
           );
           final errors = await analyzer.getErrors(path);
           expect(errors, hasLength(1));
-          expect(errors.first.offset, 101);
-          expect(errors.first.length, 2);
+          expect(errors.first.offset, 102);
+          expect(errors.first.length, 1);
           expect(
             errors.first.message,
-            '1 positional argument(s) expected, but 0 found.',
+            "1 positional argument expected by 'print', but 0 found.",
           );
         });
       });
