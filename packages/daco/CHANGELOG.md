@@ -1,3 +1,7 @@
+## 0.2.6
+
+ - **FEAT**: support Dart 3 ([#29](https://github.com/blaugold/daco/issues/29)). ([caea2dc0](https://github.com/blaugold/daco/commit/caea2dc0a751ba3a241f04fd52fbca9de69a9d60))
+
 ## 0.2.5+0
 
 ## 0.2.5
