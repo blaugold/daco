@@ -976,7 +976,10 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitLibraryDirective(LibraryDirective node) {
     computer._addRegion_node(node, HighlightRegionType.DIRECTIVE);
-    computer._addRegion_token(node.libraryKeyword, HighlightRegionType.BUILT_IN);
+    computer._addRegion_token(
+      node.libraryKeyword,
+      HighlightRegionType.BUILT_IN,
+    );
     super.visitLibraryDirective(node);
   }
 
