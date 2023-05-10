@@ -179,12 +179,12 @@ class DartBlockImpl extends BlockImpl implements DartBlock {
     }
 
     return AnalysisError.forValues(
-      source,
-      translateOffset(error.offset + errorOffset),
-      error.length,
-      error.errorCode,
-      error.message,
-      error.correctionMessage,
+      source: source,
+      offset: translateOffset(error.offset + errorOffset),
+      length: error.length,
+      errorCode: error.errorCode,
+      message: error.message,
+      correctionMessage: error.correctionMessage,
     );
   }
 
