@@ -7,4 +7,4 @@ environment:
   sdk: ^3.5.0
 
 dev_dependencies:
-  daco: ^0.2.6
+  daco: ^0.3.0

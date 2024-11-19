@@ -1,3 +1,9 @@
+## 0.3.0
+
+> Note: This release has breaking changes.
+
+ - **BREAKING** **FEAT**: remove code highlighting of code examples ([#30](https://github.com/blaugold/daco/issues/30)). ([1ab7ae1c](https://github.com/blaugold/daco/commit/1ab7ae1ca12369fb16cbc887c522dac4f3e5b193))
+
 ## 0.2.6
 
  - **FEAT**: support Dart 3 ([#29](https://github.com/blaugold/daco/issues/29)). ([caea2dc0](https://github.com/blaugold/daco/commit/caea2dc0a751ba3a241f04fd52fbca9de69a9d60))

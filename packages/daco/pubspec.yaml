@@ -2,7 +2,7 @@ name: daco
 description:
   A tool for maintaining Dart comments. Supports formatting of comments,
   including embedded Dart code.
-version: 0.2.6
+version: 0.3.0
 homepage: https://github.com/blaugold/daco/tree/main/packages/daco
 repository: https://github.com/blaugold/daco
 issue_tracker: https://github.com/blaugold/daco/issues
