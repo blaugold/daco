@@ -1,10 +1,14 @@
 name: daco_repo
 publish_to: none
 
+workspace:
+  - packages/daco
+  - packages/daco/example
+
 environment:
   sdk: ^3.5.0
 
 dev_dependencies:
-  melos: ^3.0.1
-  yaml: ^3.1.1
-  yaml_edit: ^2.0.3
+  melos: ^6.2.0
+  yaml: ^3.1.2
+  yaml_edit: ^2.2.1

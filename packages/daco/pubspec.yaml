@@ -7,6 +7,8 @@ homepage: https://github.com/blaugold/daco/tree/main/packages/daco
 repository: https://github.com/blaugold/daco
 issue_tracker: https://github.com/blaugold/daco/issues
 
+resolution: workspace
+
 environment:
   sdk: ^3.5.0
 
@@ -19,10 +21,10 @@ dependencies:
   ansi_styles: ^0.3.2+1
   args: ^2.3.1
   cli_launcher: ^0.3.0
-  cli_util: ^0.3.5
+  cli_util: ^0.4.0
   collection: ^1.16.0
   dart_style: ^2.3.1
-  http: ^0.13.4
+  http: ^1.0.0
   path: ^1.8.0
   pubspec_parse: ^1.2.0
   solvent: ^0.1.1
