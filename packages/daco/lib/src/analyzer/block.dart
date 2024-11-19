@@ -1,7 +1,6 @@
-// ignore: implementation_imports
 import 'package:analyzer/error/error.dart';
-// ignore: implementation_imports
-import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/source/line_info.dart';
+import 'package:analyzer/source/source.dart';
 
 /// A block of [text] that is contained within a [Source].
 ///
