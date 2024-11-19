@@ -19,8 +19,8 @@ jobs:
         uses: dart-lang/setup-dart@v1
       - name: Setup Melos
         run: dart pub global activate melos
-      - name: Activate daco
-        run: melos activate
+      - name: Setup daco
+        run: dart pub global activate daco
       - name: Check formatting of Dart code
         run: melos format:check
 
@@ -54,7 +54,7 @@ jobs:
         uses: dart-lang/setup-dart@v1
       - name: Setup Melos
         run: dart pub global activate melos
-      - name: Activate daco
-        run: melos activate
+      - name: Setup daco
+        run: dart pub global activate daco
       - name: Run tests
         run: melos test --no-select

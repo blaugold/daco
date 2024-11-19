@@ -17,12 +17,6 @@ command:
         run: dart tool/update_versions.dart && git add .
 
 scripts:
-  activate:
-    description: Activates the local version of daco globally.
-    exec: dart pub global activate --source path . --overwrite
-    packageFilters:
-      scope: daco
-
   format:
     description: Formats Dart code in the repository with daco.
     run: daco format .
