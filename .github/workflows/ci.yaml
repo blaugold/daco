@@ -1,8 +1,5 @@
 name: CI
 
-env:
-  MELSO_VERSION: 3.0.0-dev.0
-
 on:
   push:
     branches:
@@ -17,13 +14,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       - name: Setup Dart
         uses: dart-lang/setup-dart@v1
       - name: Setup Melos
-        uses: bluefireteam/melos-action@v2
-        with:
-          melos-version: ${{ env.MELSO_VERSION }}
+        run: dart pub global activate melos
+      - name: Install dependencies
+        run: melos bootstrap
       - name: Activate daco
         run: melos activate
       - name: Check formatting of Dart code
@@ -34,15 +31,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       - name: Setup Dart
         uses: dart-lang/setup-dart@v1
       - name: Setup Melos
-        uses: bluefireteam/melos-action@v2
-        with:
-          melos-version: ${{ env.MELSO_VERSION }}
+        run: dart pub global activate melos
+      - name: Install dependencies
+        run: melos bootstrap
       - name: Analyze Dart packages
-        uses: invertase/github-action-dart-analyzer@v1
+        uses: invertase/github-action-dart-analyzer@v3
         with:
           fatal-infos: true
           fatal-warnings: true
@@ -56,13 +53,13 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       - name: Setup Dart
         uses: dart-lang/setup-dart@v1
       - name: Setup Melos
-        uses: bluefireteam/melos-action@v2
-        with:
-          melos-version: ${{ env.MELSO_VERSION }}
+        run: dart pub global activate melos
+      - name: Install dependencies
+        run: melos bootstrap
       - name: Activate daco
         run: melos activate
       - name: Run tests
