@@ -1,7 +1,5 @@
 import 'package:analyzer/dart/analysis/context_root.dart';
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer_plugin/protocol/protocol_common.dart'
-    hide AnalysisError;
 
 import 'result.dart';
 
@@ -9,9 +7,6 @@ import 'result.dart';
 abstract class DacoAnalysisSession {
   /// Returns all errors that were discovered in the file at the given [path].
   Future<List<AnalysisError>> getErrors(String path);
-
-  /// Returns the [HighlightRegion]s for the file at the given [path].
-  Future<List<HighlightRegion>> getHighlightRegions(String path);
 
   /// Returns the result of parsing the file at the given [path].
   ParsedBlockResult getParsedBlock(String path);
