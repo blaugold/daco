@@ -174,7 +174,7 @@ class PrettierService {
             'parser': parser,
             'printWidth': printWidth,
             'proseWrap': proseWrap.name,
-          }
+          },
         }),
       );
 

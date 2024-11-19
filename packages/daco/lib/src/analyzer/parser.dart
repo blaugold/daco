@@ -193,7 +193,7 @@ class BlockParser {
         final parseBlock = ComposedDartBlock([
           if (isMain) 'Future<void> main() async {',
           childBlock,
-          if (isMain) '}'
+          if (isMain) '}',
         ]);
 
         final parseResult = parseString(

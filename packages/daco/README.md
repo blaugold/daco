@@ -8,7 +8,6 @@ A tool for maintaining **Da**rt **co**mments (daco).
 - Analyze Dart code examples
 - Analyzer plugin
   - Analyzes Dart code examples and provides errors
-  - Highlights Dart code examples
 
 > This package is in an early stage of development. Please file an
 > [issue][issues] if you find a bug or start a [discussion][discussions] if you

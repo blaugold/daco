@@ -16,8 +16,6 @@ import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/file_byte_store.dart';
 // ignore: implementation_imports
 import 'package:analyzer/src/string_source.dart';
-import 'package:analyzer_plugin/protocol/protocol_common.dart'
-    hide AnalysisError;
 import 'package:collection/collection.dart';
 import 'package:path/path.dart' as p;
 import 'package:pubspec_parse/pubspec_parse.dart';
@@ -30,8 +28,6 @@ import 'block.dart';
 import 'composed_block.dart';
 import 'error/analysis_error_utils.dart';
 import 'exceptions.dart';
-import 'highlight/compute_highlights.dart';
-import 'highlight/highlight_region_utils.dart';
 import 'parser.dart';
 import 'result.dart';
 import 'result_impl.dart';
@@ -136,52 +132,6 @@ class DacoAnalyzer implements DacoAnalysisContext, DacoAnalysisSession {
     }
 
     return allErrors.toList();
-  }
-
-  @override
-  Future<List<HighlightRegion>> getHighlightRegions(String path) async {
-    // TODO(blaugold): handle characters without highlight region so they
-    // aren't marked as comment
-
-    final allRegions = <HighlightRegion>[];
-
-    final result = await _computeAnalysisResult(path);
-    for (final codeExampleResult in result.codeExampleResults) {
-      final highlightComputer =
-          DartUnitHighlightsComputer(codeExampleResult.resolvedUnitResult.unit);
-      var regions = highlightComputer.compute();
-
-      // When a code example is contained within in documentation comment all
-      // it's lines are prefixed with '///' in the source. Multiline highlight
-      // regions calculated here don't take this into account must be split
-      // before their offsets are translated to the root block.
-      regions = regions
-          .expand(
-            (region) => splitMultilineRegion(
-              region,
-              codeExampleResult.resolvedUnitResult.lineInfo,
-            ),
-          )
-          .toList();
-
-      for (final region in regions) {
-        final composedLibrary = codeExampleResult.composedLibrary;
-        final translatedOffset = composedLibrary.translateOffset(region.offset);
-        if (translatedOffset == null) {
-          // This region is from code that was injected, so we skip it.
-          continue;
-        }
-
-        // Translates offset to source root block that contains the
-        // originating block.
-        region.offset =
-            translatedOffset.block.translateOffset(translatedOffset.offset);
-
-        allRegions.add(region);
-      }
-    }
-
-    return allRegions;
   }
 
   @override
@@ -295,7 +245,7 @@ extension on DartCodeExample {
       if (publicApiFileUri != null) ...[
         '// ignore: UNUSED_IMPORT',
         'import "$publicApiFileUri";',
-        ''
+        '',
       ],
     ];
 
