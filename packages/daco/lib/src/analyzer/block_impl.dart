@@ -1,8 +1,8 @@
 // ignore_for_file: public_member_api_docs, parameter_assignments
 
 import 'package:analyzer/error/error.dart';
-// ignore: implementation_imports
-import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/source/line_info.dart';
+import 'package:analyzer/source/source.dart';
 import 'package:collection/collection.dart';
 
 import 'block.dart';

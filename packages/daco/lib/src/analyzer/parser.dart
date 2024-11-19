@@ -2,8 +2,8 @@ import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart' hide Block;
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
-// ignore: implementation_imports
-import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/source/line_info.dart';
+import 'package:analyzer/source/source.dart';
 import 'package:collection/collection.dart';
 
 import '../char_codes.dart';
@@ -276,7 +276,7 @@ class _CommentCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitComment(Comment node) {
-    if (node.isDocumentation && node.beginToken.lexeme.startsWith('///')) {
+    if (node.beginToken.lexeme.startsWith('///')) {
       comments.add(node);
     }
   }
