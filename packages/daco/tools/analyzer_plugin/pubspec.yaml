@@ -6,5 +6,5 @@ environment:
 
 dependencies:
   analyzer_plugin: ^0.11.0
-  daco: 0.3.0
+  daco: 0.3.0+1
   web_socket_channel: ^2.2.0

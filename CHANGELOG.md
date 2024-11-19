@@ -11,6 +11,25 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 
 Packages with breaking changes:
 
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`daco` - `v0.3.0+1`](#daco---v0301)
+
+---
+
+#### `daco` - `v0.3.0+1`
+
+
+## 2024-11-19
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
  - [`daco` - `v0.3.0`](#daco---v030)
 
 Packages with other changes:
