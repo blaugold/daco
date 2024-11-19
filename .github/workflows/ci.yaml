@@ -19,6 +19,8 @@ jobs:
         uses: dart-lang/setup-dart@v1
       - name: Setup Melos
         run: dart pub global activate melos
+      - name: Install dependencies
+        run: melos bootstrap
       - name: Activate daco
         run: melos activate
       - name: Check formatting of Dart code
@@ -34,6 +36,8 @@ jobs:
         uses: dart-lang/setup-dart@v1
       - name: Setup Melos
         run: dart pub global activate melos
+      - name: Install dependencies
+        run: melos bootstrap
       - name: Analyze Dart packages
         uses: invertase/github-action-dart-analyzer@v3
         with:
@@ -54,6 +58,8 @@ jobs:
         uses: dart-lang/setup-dart@v1
       - name: Setup Melos
         run: dart pub global activate melos
+      - name: Install dependencies
+        run: melos bootstrap
       - name: Activate daco
         run: melos activate
       - name: Run tests
