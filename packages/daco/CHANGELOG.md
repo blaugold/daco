@@ -1,3 +1,9 @@
+## 0.4.0
+
+> Note: This release has breaking changes.
+
+ - **BREAKING** **FEAT**: upgrade to latest `dart_style` ([#34](https://github.com/blaugold/daco/issues/34)). ([25f867a6](https://github.com/blaugold/daco/commit/25f867a676f0c1caa9b711b194ca91ed23baff2e))
+
 ## 0.3.0+1
 
 ## 0.3.0

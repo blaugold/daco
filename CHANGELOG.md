@@ -3,6 +3,27 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2025-06-05
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - [`daco` - `v0.4.0`](#daco---v040)
+
+Packages with other changes:
+
+ - There are no other changes in this release.
+
+---
+
+#### `daco` - `v0.4.0`
+
+ - **BREAKING** **FEAT**: upgrade to latest `dart_style` ([#34](https://github.com/blaugold/daco/issues/34)). ([25f867a6](https://github.com/blaugold/daco/commit/25f867a676f0c1caa9b711b194ca91ed23baff2e))
+
+
 ## 2024-11-19
 
 ### Changes
