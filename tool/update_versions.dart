@@ -4,8 +4,9 @@ import 'package:yaml/yaml.dart';
 import 'package:yaml_edit/yaml_edit.dart';
 
 final dacoPubspecFile = File('packages/daco/pubspec.yaml');
-final analyzerPluginPubspecFile =
-    File('packages/daco/tools/analyzer_plugin/pubspec.yaml');
+final analyzerPluginPubspecFile = File(
+  'packages/daco/tools/analyzer_plugin/pubspec.yaml',
+);
 
 void main() {
   final dacoPubspec = loadYaml(dacoPubspecFile.readAsStringSync()) as YamlMap;

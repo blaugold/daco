@@ -12,8 +12,9 @@ import 'utils.dart';
 final _serverPath = packageRoot.then((dir) => p.join(dir, 'prettier-server'));
 final _lockFilePath = _serverPath.then((dir) => p.join(dir, 'lock'));
 final _nodeModulesPath = _serverPath.then((dir) => p.join(dir, 'node_modules'));
-final _serverEntrypoint =
-    _serverPath.then((dir) => p.join(dir, 'dist/tsc-out/index.js'));
+final _serverEntrypoint = _serverPath.then(
+  (dir) => p.join(dir, 'dist/tsc-out/index.js'),
+);
 
 /// How to handle wrapping in markdown text.
 enum ProseWrap {
@@ -73,18 +74,18 @@ class PrettierService {
       _logger.trace('Starting prettier server...');
     }
 
-    _process = await Process.start(
-      'node',
-      [await _serverEntrypoint],
-      workingDirectory: await _serverPath,
-    );
+    _process = await Process.start('node', [
+      await _serverEntrypoint,
+    ], workingDirectory: await _serverPath);
 
     final readyCompleter = Completer<void>();
 
-    final stdoutLines =
-        const LineSplitter().bind(utf8.decoder.bind(_process!.stdout));
-    final stderrLines =
-        const LineSplitter().bind(utf8.decoder.bind(_process!.stderr));
+    final stdoutLines = const LineSplitter().bind(
+      utf8.decoder.bind(_process!.stdout),
+    );
+    final stderrLines = const LineSplitter().bind(
+      utf8.decoder.bind(_process!.stderr),
+    );
 
     stdoutLines.listen((line) {
       if (!readyCompleter.isCompleted) {
@@ -119,9 +120,7 @@ class PrettierService {
     await Future.any([
       // ignore: void_checks
       _process!.exitCode.then((exitCode) {
-        throw Exception(
-          'prettier server exited with exit code $exitCode.',
-        );
+        throw Exception('prettier server exited with exit code $exitCode.');
       }),
       readyCompleter.future,
     ]);
@@ -165,9 +164,7 @@ class PrettierService {
     try {
       response = await client.post(
         Uri.parse('http://localhost:$_port/format'),
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'source': source,
           'options': {

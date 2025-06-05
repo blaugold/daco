@@ -50,22 +50,23 @@ class AnalyzeCommand extends DacoCommand {
 
   @override
   Future<void> run() async {
-    final analysisContexts =
-        createAnalysisContextCollection(includedPaths: _includedPaths);
+    final analysisContexts = createAnalysisContextCollection(
+      includedPaths: _includedPaths,
+    );
 
     for (final analysisContext in analysisContexts.contexts) {
       final analyzer = DacoAnalyzer(analysisContext: analysisContext);
 
-      final progress =
-          logger.progress('Analyzing ${_contextRootDisplayName(analyzer)}');
+      final progress = logger.progress(
+        'Analyzing ${_contextRootDisplayName(analyzer)}',
+      );
 
       final allErrors = (await Future.wait(
         analyzer.contextRoot
             .analyzedFiles()
             .where(isDartFile)
             .map(analyzer.session.getErrors),
-      ))
-          .expand((errors) => errors);
+      )).expand((errors) => errors);
 
       if (allErrors.isEmpty) {
         progress.finish(message: 'Found no issues.');

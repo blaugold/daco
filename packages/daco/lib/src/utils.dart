@@ -34,15 +34,13 @@ Future<void> runProcess(
   if (result.exitCode != 0) {
     final commandLine = '$command ${arguments.join(' ')}';
     workingDirectory ??= Directory.current.path;
-    throw Exception(
-      '''
+    throw Exception('''
 Failed to run '$commandLine' in '$workingDirectory':
 Exit code: ${result.exitCode}
 Stdout:
 ${result.stdout}
 Stderr:
 ${result.stderr}
-''',
-    );
+''');
   }
 }

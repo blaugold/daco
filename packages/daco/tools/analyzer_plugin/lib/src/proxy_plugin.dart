@@ -44,7 +44,7 @@ class ProxyPlugin {
       final response = json.decode(message as String) as Map<String, Object?>;
       if (response.containsKey('event')) {
         response['params'] = {
-          ...(response['params']! as Map).cast<String, Object>()
+          ...(response['params']! as Map).cast<String, Object>(),
         };
       }
       _serverSendPort.send(response);

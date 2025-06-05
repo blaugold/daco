@@ -48,26 +48,25 @@ ByteStore createByteStore() {
 AnalysisContextCollection createAnalysisContextCollection({
   required List<String> includedPaths,
   ResourceProvider? resourceProvider,
-}) =>
-    AnalysisContextCollectionImpl(
-      includedPaths: includedPaths,
-      byteStore: createByteStore(),
-      resourceProvider: resourceProvider is OverlayResourceProvider
-          ? resourceProvider
-          : OverlayResourceProvider(PhysicalResourceProvider.INSTANCE),
-    );
+}) => AnalysisContextCollectionImpl(
+  includedPaths: includedPaths,
+  byteStore: createByteStore(),
+  resourceProvider: resourceProvider is OverlayResourceProvider
+      ? resourceProvider
+      : OverlayResourceProvider(PhysicalResourceProvider.INSTANCE),
+);
 
 /// Implementation of [DacoAnalysisContext] and [DacoAnalysisSession] for
 /// analysis of files in a [contextRoot].
 class DacoAnalyzer implements DacoAnalysisContext, DacoAnalysisSession {
   /// Creates a new [DacoAnalyzer] for analysis of files in the given
   /// [contextRoot].
-  DacoAnalyzer({
-    required AnalysisContext analysisContext,
-  })  : _context = analysisContext,
-        _resourceProvider = analysisContext.contextRoot.resourceProvider
-            as OverlayResourceProvider,
-        contextRoot = analysisContext.contextRoot;
+  DacoAnalyzer({required AnalysisContext analysisContext})
+    : _context = analysisContext,
+      _resourceProvider =
+          analysisContext.contextRoot.resourceProvider
+              as OverlayResourceProvider,
+      contextRoot = analysisContext.contextRoot;
 
   final AnalysisContext _context;
 
@@ -87,16 +86,18 @@ class DacoAnalyzer implements DacoAnalysisContext, DacoAnalysisSession {
   final _parser = BlockParser();
 
   Pubspec? _loadPubspec() {
-    final pubspecFile = _resourceProvider
-        .getFile(p.join(contextRoot.root.path, 'pubspec.yaml'));
+    final pubspecFile = _resourceProvider.getFile(
+      p.join(contextRoot.root.path, 'pubspec.yaml'),
+    );
     return pubspecFile.exists
         ? Pubspec.parse(pubspecFile.readAsStringSync())
         : null;
   }
 
   Uri? _resolvePublicApiFileUri() {
-    final publicApiFileUri =
-        pubspec?.let((it) => Uri.parse('package:${it.name}/${it.name}.dart'));
+    final publicApiFileUri = pubspec?.let(
+      (it) => Uri.parse('package:${it.name}/${it.name}.dart'),
+    );
 
     final publicApiFile = publicApiFileUri
         ?.let(_context.currentSession.uriConverter.uriToPath)
@@ -157,8 +158,9 @@ class DacoAnalyzer implements DacoAnalysisContext, DacoAnalysisSession {
 
     Iterable<DartCodeExample> codeExamples;
     if (block is DartBlock) {
-      codeExamples = block.documentationComments
-          .expand((comment) => comment.dartCodeExamples);
+      codeExamples = block.documentationComments.expand(
+        (comment) => comment.dartCodeExamples,
+      );
     } else if (block is MarkdownBlock) {
       codeExamples = block.dartCodeExamples;
     } else {
@@ -189,8 +191,9 @@ class DacoAnalyzer implements DacoAnalysisContext, DacoAnalysisSession {
         _context.changeFile(codeExamplePath);
         await _context.applyPendingFileChanges();
 
-        final result =
-            await _context.currentSession.getResolvedUnit(codeExamplePath);
+        final result = await _context.currentSession.getResolvedUnit(
+          codeExamplePath,
+        );
 
         if (result is! ResolvedUnitResult) {
           throw Exception('$result for $codeExamplePath');
@@ -237,10 +240,7 @@ class _CodeExampleResult {
 }
 
 extension on DartCodeExample {
-  ComposedDartBlock buildExampleLibrary({
-    Uri? publicApiFileUri,
-    String? uri,
-  }) {
+  ComposedDartBlock buildExampleLibrary({Uri? publicApiFileUri, String? uri}) {
     final parts = <Object>[
       if (publicApiFileUri != null) ...[
         '// ignore: UNUSED_IMPORT',

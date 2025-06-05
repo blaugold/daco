@@ -19,17 +19,10 @@ final _dartDocTagWithSpacerRegExp = RegExp(r'({@.+})-+$', multiLine: true);
 /// Formatter which formats Dart code, including comments.
 class DacoFormatter {
   /// Creates a formatter which formats Dart code, including comments.
-  DacoFormatter({
-    this.lineLength = 80,
-    Iterable<StyleFix>? fixes,
-    required this.prettierService,
-  }) : fixes = {...?fixes};
+  DacoFormatter({this.lineLength = 80, required this.prettierService});
 
   /// The maximum length of a line of code.
   final int lineLength;
-
-  /// The fixes to apply to Dart code.
-  final Set<StyleFix> fixes;
 
   /// The [PrettierService] to use to format markdown.
   final PrettierService prettierService;
@@ -56,10 +49,7 @@ class DacoFormatter {
     }
   }
 
-  Future<String> _formatBlock(
-    Block block, {
-    required int lineLength,
-  }) async {
+  Future<String> _formatBlock(Block block, {required int lineLength}) async {
     if (block is DartBlock) {
       return _formatDartBlock(block, lineLength: lineLength);
     } else if (block is MarkdownBlock) {
@@ -74,11 +64,12 @@ class DacoFormatter {
     required int lineLength,
   }) async {
     final formatter = DartFormatter(
-      pageWidth: lineLength +
+      pageWidth:
+          lineLength +
           // We add 2 to the line length to account for the indentation within
           // the main function.
           (block.isInMainBody ? 2 : 0),
-      fixes: fixes,
+      languageVersion: DartFormatter.latestLanguageVersion,
     );
 
     var text = block.text;
@@ -134,8 +125,9 @@ class DacoFormatter {
       block.lineInfo,
       lineLength,
     );
-    final formattedBlock = parseString(text: formattedText, uri: 'block.md')
-        .block as MarkdownBlock;
+    final formattedBlock =
+        parseString(text: formattedText, uri: 'block.md').block
+            as MarkdownBlock;
     final formattedCodeBlocks = <DartBlock, String>{};
 
     await Future.wait(

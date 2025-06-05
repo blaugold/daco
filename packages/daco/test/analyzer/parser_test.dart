@@ -14,22 +14,18 @@ void main() {
       });
 
       test('no comments', () {
-        final block = parseDart(
-          '''
+        final block = parseDart('''
 const a = 'a';
-''',
-        );
+''');
         expect(block.enclosedBlocks, isEmpty);
         expect(block.documentationComments, isEmpty);
       });
 
       test('single comment', () {
-        final block = parseDart(
-          '''
+        final block = parseDart('''
 /// A
 const a = 'a';
-''',
-        );
+''');
 
         final comments = block.documentationComments;
         expect(comments, block.enclosedBlocks);
@@ -38,15 +34,13 @@ const a = 'a';
       });
 
       test('multiple comments', () {
-        final block = parseDart(
-          '''
+        final block = parseDart('''
 /// A
 const a = 'a';
 
 /// B
 const b = 'b';
-''',
-        );
+''');
 
         final comments = block.documentationComments;
         expect(comments, block.enclosedBlocks);
@@ -56,13 +50,11 @@ const b = 'b';
       });
 
       test('multi-line comments', () {
-        final block = parseDart(
-          '''
+        final block = parseDart('''
 /// A
 /// B
 const a = 'a';
-''',
-        );
+''');
 
         final comment = block.documentationComments.first;
         expect(comment.text, 'A\nB\n');
@@ -71,13 +63,11 @@ const a = 'a';
       });
 
       test('strips the first space of each line if it exists', () {
-        final block = parseDart(
-          '''
+        final block = parseDart('''
 /// A
 ///B
 const a = 'a';
-''',
-        );
+''');
 
         final comment = block.documentationComments.first;
         expect(comment.text, 'A\nB\n');
@@ -86,13 +76,11 @@ const a = 'a';
       });
 
       test('indented comments', () {
-        final block = parseDart(
-          '''
+        final block = parseDart('''
   /// A
   /// B
 const a = 'a';
-''',
-        );
+''');
 
         final comment = block.documentationComments.first;
         expect(comment.text, 'A\nB\n');
@@ -103,11 +91,9 @@ const a = 'a';
 
     group('analysis errors', () {
       test('in root source', () {
-        final result = parseDartWithErrors(
-          '''
+        final result = parseDartWithErrors('''
 const a = 'a'
-''',
-        );
+''');
 
         final analysisErrors = result.errors;
         expect(analysisErrors, hasLength(1));
@@ -118,13 +104,11 @@ const a = 'a'
       });
 
       test('in enclosed source', () {
-        final result = parseMarkdownWithErrors(
-          '''
+        final result = parseMarkdownWithErrors('''
 ```dart
 const a = 'a'
 ```
-''',
-        );
+''');
 
         final analysisErrors = result.errors;
         expect(analysisErrors, hasLength(1));
@@ -136,8 +120,7 @@ const a = 'a'
     });
 
     test('advanced comment', () {
-      final source = StringSource(
-        '''
+      final source = StringSource('''
 /// A
 ///
 /// ```dart
@@ -153,9 +136,7 @@ const a = 'a'
 /// const c = 'c';
 /// ```
 const a = 'a';
-''',
-        'test.dart',
-      );
+''', 'test.dart');
 
       final parser = BlockParser()..parse(source);
 
@@ -178,24 +159,19 @@ const a = 'a';
       });
 
       test('no code blocks', () {
-        final block = parseMarkdown(
-          '''
+        final block = parseMarkdown('''
 A
-''',
-        );
+''');
         expect(block.enclosedBlocks, isEmpty);
         expect(block.dartCodeBlocks, isEmpty);
       });
 
       test('single code block', () {
-        final block = parseMarkdown(
-          allowErrors: true,
-          '''
+        final block = parseMarkdown(allowErrors: true, '''
 ```dart
 a
 ```
-''',
-        );
+''');
 
         final codeBlocks = block.dartCodeBlocks;
         expect(codeBlocks, block.enclosedBlocks);
@@ -204,17 +180,14 @@ a
       });
 
       test('multi line code blocks', () {
-        final block = parseMarkdown(
-          allowErrors: true,
-          '''
+        final block = parseMarkdown(allowErrors: true, '''
 ```dart
 a
 ```
 ```dart
 b
 ```
-''',
-        );
+''');
 
         final codeBlocks = block.dartCodeBlocks;
         expect(codeBlocks, block.enclosedBlocks);
@@ -224,15 +197,12 @@ b
       });
 
       test('multiple code blocks', () {
-        final block = parseMarkdown(
-          allowErrors: true,
-          '''
+        final block = parseMarkdown(allowErrors: true, '''
 ```dart
 a
 b
 ```
-''',
-        );
+''');
 
         final codeBlock = block.dartCodeBlocks.first;
         expect(codeBlock.text, 'a\nb\n');
@@ -241,15 +211,12 @@ b
       });
 
       test('indented code blocks', () {
-        final block = parseMarkdown(
-          allowErrors: true,
-          '''
+        final block = parseMarkdown(allowErrors: true, '''
   ```dart
   a
   b
   ```
-''',
-        );
+''');
 
         final codeBlock = block.dartCodeBlocks.first;
         expect(codeBlock.text, 'a\nb\n');
@@ -260,29 +227,25 @@ b
 
     group('Dart code examples', () {
       test('single code block', () {
-        final block = parseMarkdown(
-          '''
+        final block = parseMarkdown('''
 ```dart
 const a = 'a';
 ```
-''',
-        );
+''');
 
         expect(block.dartCodeExamples, hasLength(1));
         expect(block.dartCodeExamples.first.codeBlocks, block.dartCodeBlocks);
       });
 
       test('multiple single code blocks', () {
-        final block = parseMarkdown(
-          '''
+        final block = parseMarkdown('''
 ```dart
 const a = 'a';
 ```
 ```dart
 const b = 'b';
 ```
-''',
-        );
+''');
 
         expect(block.dartCodeExamples, hasLength(2));
         expect(block.dartCodeExamples[0].codeBlocks, [block.dartCodeBlocks[0]]);
@@ -290,24 +253,21 @@ const b = 'b';
       });
 
       test('multi-part', () {
-        final block = parseMarkdown(
-          '''
+        final block = parseMarkdown('''
 ```dart multi_begin
 const a = 'a';
 ```
 ```dart multi_end
 const b = 'b';
 ```
-''',
-        );
+''');
 
         expect(block.dartCodeExamples, hasLength(1));
         expect(block.dartCodeExamples[0].codeBlocks, block.dartCodeBlocks);
       });
 
       test('multiple multi-part', () {
-        final block = parseMarkdown(
-          '''
+        final block = parseMarkdown('''
 ```dart multi_begin
 const a = 'a';
 ```
@@ -320,8 +280,7 @@ const c = 'c';
 ```dart multi_end
 const d = 'd';
 ```
-''',
-        );
+''');
 
         expect(block.dartCodeExamples, hasLength(2));
         expect(
@@ -335,8 +294,7 @@ const d = 'd';
       });
 
       test('single code block and multi-part', () {
-        final block = parseMarkdown(
-          '''
+        final block = parseMarkdown('''
 ```dart
 const a = 'a';
 ```
@@ -346,8 +304,7 @@ const b = 'b';
 ```dart multi_end
 const c = 'c';
 ```
-''',
-        );
+''');
 
         expect(block.dartCodeExamples, hasLength(2));
         expect(
@@ -361,43 +318,37 @@ const c = 'c';
       });
 
       test('skip if code block is ignored', () {
-        final block = parseMarkdown(
-          '''
+        final block = parseMarkdown('''
 ```dart ignore
 const a = 'a';
 ```
-''',
-        );
+''');
 
         expect(block.dartCodeExamples, isEmpty);
       });
 
       test('skip if all code blocks in multi-part are ignored', () {
-        final block = parseMarkdown(
-          '''
+        final block = parseMarkdown('''
 ```dart multi_begin ignore
 const a = 'a';
 ```
 ```dart multi_end ignore
 const b = 'b';
 ```
-''',
-        );
+''');
 
         expect(block.dartCodeExamples, isEmpty);
       });
 
       test('keep partially ignored multi-part', () {
-        final block = parseMarkdown(
-          '''
+        final block = parseMarkdown('''
 ```dart multi_begin
 const a = 'a';
 ```
 ```dart multi_end ignore
 const b = 'b';
 ```
-''',
-        );
+''');
 
         expect(block.dartCodeExamples, hasLength(1));
       });

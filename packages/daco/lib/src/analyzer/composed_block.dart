@@ -8,10 +8,7 @@ import 'block_impl.dart';
 /// supports mapping of offsets back to the source block.
 class ComposedBlock<T extends Block> {
   /// Creates a [ComposedBlock] from a list of [parts] of [String]s and [Block].
-  ComposedBlock(
-    Iterable<Object> parts, {
-    this.uri,
-  }) {
+  ComposedBlock(Iterable<Object> parts, {this.uri}) {
     text = _joinParts<T>(parts, _blocks);
   }
 
@@ -26,8 +23,9 @@ class ComposedBlock<T extends Block> {
   /// Translates an [offset] in [text] to the [Block] which is the source of the
   /// character at the given offset.
   ComposedBlockOffset<T>? translateOffset(int offset) {
-    final entry =
-        _blocks.entries.firstWhereOrNull((entry) => entry.key.contains(offset));
+    final entry = _blocks.entries.firstWhereOrNull(
+      (entry) => entry.key.contains(offset),
+    );
     if (entry == null) {
       return null;
     }
