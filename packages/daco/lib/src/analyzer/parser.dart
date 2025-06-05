@@ -37,10 +37,7 @@ class BlockParser {
     errors = [];
 
     if (isDartFile(source.fullName)) {
-      _parseDartSource(
-        source,
-        withErrorsInRootBlock: withErrorsInRootBlock,
-      );
+      _parseDartSource(source, withErrorsInRootBlock: withErrorsInRootBlock);
     } else if (isMarkdownFile(source.fullName)) {
       _parseMarkdownSource(source);
     } else {
@@ -101,8 +98,8 @@ class BlockParser {
         // We drop the first space of each line, if it exists.
         final lineStart =
             token.lexeme.length > 3 && token.lexeme.codeUnitAt(3) == $SPACE
-                ? 4
-                : 3;
+            ? 4
+            : 3;
         buffer.writeln(token.lexeme.substring(lineStart));
         lineStartOffsets.add(token.offset + lineStart + astOffset);
       }
@@ -148,8 +145,9 @@ class BlockParser {
       // LineInfo returns one-based line numbers and since the code starts
       // on the line after the ```, we need don't need to subtract 1 from
       // `lineNumber`.
-      final firstLineOfCode =
-          block.lineInfo.getLocation(match.start).lineNumber;
+      final firstLineOfCode = block.lineInfo
+          .getLocation(match.start)
+          .lineNumber;
       final buffer = StringBuffer();
       final lineStartOffsets = <int>[];
 
@@ -223,10 +221,12 @@ class BlockParser {
     Iterable<List<DartBlock>> codeBlockGroups() sync* {
       List<DartBlock>? parts;
       for (final codeBlock in block.dartCodeBlocks) {
-        final isMultiPartBegin = codeBlock.codeBlockAttributes
-            .contains(CodeBlockAttribute.multiBeing);
-        final isMultiPartEnd =
-            codeBlock.codeBlockAttributes.contains(CodeBlockAttribute.multiEnd);
+        final isMultiPartBegin = codeBlock.codeBlockAttributes.contains(
+          CodeBlockAttribute.multiBeing,
+        );
+        final isMultiPartEnd = codeBlock.codeBlockAttributes.contains(
+          CodeBlockAttribute.multiEnd,
+        );
 
         if (parts == null) {
           // We are not already in a multi-part example.

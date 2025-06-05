@@ -15,17 +15,13 @@ const a = 'a';
       });
 
       test('single comment', () {
-        final block = parseDart(
-          '''
+        final block = parseDart('''
 /// A
 const a = 'a';
-''',
-        );
+''');
 
         expect(
-          block.replaceEnclosedBlocks({
-            block.documentationComments.first: 'B',
-          }),
+          block.replaceEnclosedBlocks({block.documentationComments.first: 'B'}),
           '''
 /// B
 const a = 'a';
@@ -34,15 +30,13 @@ const a = 'a';
       });
 
       test('multiple comments', () {
-        final block = parseDart(
-          '''
+        final block = parseDart('''
 /// A
 const a = 'a';
 
 /// B
 const b = 'b';
-''',
-        );
+''');
 
         expect(
           block.replaceEnclosedBlocks({
@@ -60,20 +54,16 @@ const b = 'b';
       });
 
       test('one of multiple comments', () {
-        final block = parseDart(
-          '''
+        final block = parseDart('''
 /// A
 const a = 'a';
 
 /// B
 const b = 'b';
-''',
-        );
+''');
 
         expect(
-          block.replaceEnclosedBlocks({
-            block.documentationComments[0]: 'C',
-          }),
+          block.replaceEnclosedBlocks({block.documentationComments[0]: 'C'}),
           '''
 /// C
 const a = 'a';
@@ -84,9 +74,7 @@ const b = 'b';
         );
 
         expect(
-          block.replaceEnclosedBlocks({
-            block.documentationComments[1]: 'D',
-          }),
+          block.replaceEnclosedBlocks({block.documentationComments[1]: 'D'}),
           '''
 /// A
 const a = 'a';
@@ -98,18 +86,14 @@ const b = 'b';
       });
 
       test('multi line comments', () {
-        final block = parseDart(
-          '''
+        final block = parseDart('''
 /// A
 /// B
 const a = 'a';
-''',
-        );
+''');
 
         expect(
-          block.replaceEnclosedBlocks({
-            block.documentationComments.first: 'C',
-          }),
+          block.replaceEnclosedBlocks({block.documentationComments.first: 'C'}),
           '''
 /// C
 const a = 'a';
@@ -129,12 +113,10 @@ const a = 'a';
       });
 
       test('trims last empty line', () {
-        final block = parseDart(
-          '''
+        final block = parseDart('''
 /// A
 const a = 'a';
-''',
-        );
+''');
 
         expect(
           block.replaceEnclosedBlocks({
@@ -148,17 +130,13 @@ const a = 'a';
       });
 
       test('empty replacement', () {
-        final block = parseDart(
-          '''
+        final block = parseDart('''
 /// A
 const a = 'a';
-''',
-        );
+''');
 
         expect(
-          block.replaceEnclosedBlocks({
-            block.documentationComments.first: '',
-          }),
+          block.replaceEnclosedBlocks({block.documentationComments.first: ''}),
           '''
 ///
 const a = 'a';
@@ -167,17 +145,13 @@ const a = 'a';
       });
 
       test('indented comment', () {
-        final block = parseDart(
-          '''
+        final block = parseDart('''
   /// A
 const a = 'a';
-''',
-        );
+''');
 
         expect(
-          block.replaceEnclosedBlocks({
-            block.documentationComments.first: 'B',
-          }),
+          block.replaceEnclosedBlocks({block.documentationComments.first: 'B'}),
           '''
   /// B
 const a = 'a';
@@ -199,19 +173,14 @@ A
       });
 
       test('single code block', () {
-        final block = parseMarkdown(
-          allowErrors: true,
-          '''
+        final block = parseMarkdown(allowErrors: true, '''
 ```dart
 a
 ```
-''',
-        );
+''');
 
         expect(
-          block.replaceEnclosedBlocks({
-            block.dartCodeBlocks.first: 'b',
-          }),
+          block.replaceEnclosedBlocks({block.dartCodeBlocks.first: 'b'}),
           '''
 ```dart
 b
@@ -221,17 +190,14 @@ b
       });
 
       test('multiple code blocks', () {
-        final block = parseMarkdown(
-          allowErrors: true,
-          '''
+        final block = parseMarkdown(allowErrors: true, '''
 ```dart
 a
 ```
 ```dart
 b
 ```
-''',
-        );
+''');
 
         expect(
           block.replaceEnclosedBlocks({
@@ -250,73 +216,50 @@ d
       });
 
       test('one of multiple code blocks', () {
-        final block = parseMarkdown(
-          allowErrors: true,
-          '''
+        final block = parseMarkdown(allowErrors: true, '''
 ```dart
 a
 ```
 ```dart
 b
 ```
-''',
-        );
+''');
 
-        expect(
-          block.replaceEnclosedBlocks({
-            block.dartCodeBlocks[0]: 'c',
-          }),
-          '''
+        expect(block.replaceEnclosedBlocks({block.dartCodeBlocks[0]: 'c'}), '''
 ```dart
 c
 ```
 ```dart
 b
 ```
-''',
-        );
+''');
 
-        expect(
-          block.replaceEnclosedBlocks({
-            block.dartCodeBlocks[1]: 'c',
-          }),
-          '''
+        expect(block.replaceEnclosedBlocks({block.dartCodeBlocks[1]: 'c'}), '''
 ```dart
 a
 ```
 ```dart
 c
 ```
-''',
-        );
+''');
       });
 
       test('multi-line code blocks', () {
-        final block = parseMarkdown(
-          allowErrors: true,
-          '''
+        final block = parseMarkdown(allowErrors: true, '''
 ```dart
 a
 b
 ```
-''',
-        );
+''');
 
-        expect(
-          block.replaceEnclosedBlocks({
-            block.dartCodeBlocks[0]: 'c',
-          }),
-          '''
+        expect(block.replaceEnclosedBlocks({block.dartCodeBlocks[0]: 'c'}), '''
 ```dart
 c
 ```
-''',
-        );
+''');
 
         expect(
-          block.replaceEnclosedBlocks({
-            block.dartCodeBlocks[0]: 'c\nd',
-          }),
+          block.replaceEnclosedBlocks({block.dartCodeBlocks[0]: 'c\nd'}),
           '''
 ```dart
 c
@@ -327,19 +270,14 @@ d
       });
 
       test('trim last empty line', () {
-        final block = parseMarkdown(
-          allowErrors: true,
-          '''
+        final block = parseMarkdown(allowErrors: true, '''
 ```dart
 a
 ```
-''',
-        );
+''');
 
         expect(
-          block.replaceEnclosedBlocks({
-            block.dartCodeBlocks[0]: 'b\n',
-          }),
+          block.replaceEnclosedBlocks({block.dartCodeBlocks[0]: 'b\n'}),
           '''
 ```dart
 b
@@ -349,46 +287,30 @@ b
       });
 
       test('empty replacement', () {
-        final block = parseMarkdown(
-          allowErrors: true,
-          '''
+        final block = parseMarkdown(allowErrors: true, '''
 ```dart
 a
 ```
-''',
-        );
+''');
 
-        expect(
-          block.replaceEnclosedBlocks({
-            block.dartCodeBlocks[0]: '',
-          }),
-          '''
+        expect(block.replaceEnclosedBlocks({block.dartCodeBlocks[0]: ''}), '''
 ```dart
 ```
-''',
-        );
+''');
       });
 
       test('indented code block', () {
-        final block = parseMarkdown(
-          allowErrors: true,
-          '''
+        final block = parseMarkdown(allowErrors: true, '''
   ```dart
   a
   ```
-''',
-        );
+''');
 
-        expect(
-          block.replaceEnclosedBlocks({
-            block.dartCodeBlocks[0]: 'b',
-          }),
-          '''
+        expect(block.replaceEnclosedBlocks({block.dartCodeBlocks[0]: 'b'}), '''
   ```dart
   b
   ```
-''',
-        );
+''');
       });
     });
   });

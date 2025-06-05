@@ -17,11 +17,6 @@ class FormatCommand extends DacoCommand {
   FormatCommand() {
     argParser
       ..addFlag(
-        'fix',
-        help: 'Apply all style fixes.',
-        negatable: false,
-      )
-      ..addFlag(
         'set-exit-if-changed',
         help: 'Return exit code 1 if there are any formatting changes.',
         negatable: false,
@@ -39,8 +34,6 @@ class FormatCommand extends DacoCommand {
 
   @override
   String get name => 'format';
-
-  bool get _fix => argResults!['fix']! as bool;
 
   bool get _setExistIfChanged => argResults!['set-exit-if-changed']! as bool;
 
@@ -61,28 +54,29 @@ class FormatCommand extends DacoCommand {
       usageException('No files specified.');
     }
 
-    final files = await Stream.fromIterable(
-      _files.map((e) {
-        // ignore: exhaustive_cases
-        switch (FileSystemEntity.typeSync(e)) {
-          case FileSystemEntityType.file:
-            return File(e);
-          case FileSystemEntityType.directory:
-            return Directory(e);
-          case FileSystemEntityType.notFound:
-            return usageException('File not found: $e');
-          // ignore: no_default_cases
-          default:
-            unreachable();
-        }
-      }),
-    )
-        .asyncExpand(
-          (entity) => entity is File
-              ? Stream.value(entity)
-              : findDartFiles(entity as Directory),
-        )
-        .toList();
+    final files =
+        await Stream.fromIterable(
+              _files.map((e) {
+                // ignore: exhaustive_cases
+                switch (FileSystemEntity.typeSync(e)) {
+                  case FileSystemEntityType.file:
+                    return File(e);
+                  case FileSystemEntityType.directory:
+                    return Directory(e);
+                  case FileSystemEntityType.notFound:
+                    return usageException('File not found: $e');
+                  // ignore: no_default_cases
+                  default:
+                    unreachable();
+                }
+              }),
+            )
+            .asyncExpand(
+              (entity) => entity is File
+                  ? Stream.value(entity)
+                  : findDartFiles(entity as Directory),
+            )
+            .toList();
 
     final prettierService = PrettierService(logger: logger);
     await prettierService.start();
@@ -90,7 +84,6 @@ class FormatCommand extends DacoCommand {
     try {
       final dartFormatter = DacoFormatter(
         lineLength: _lineLength,
-        fixes: _fix ? StyleFix.all : [],
         prettierService: prettierService,
       );
 
@@ -119,11 +112,7 @@ class FormatCommand extends DacoCommand {
   }
 }
 
-enum _FormattingResult {
-  unchanged,
-  changed,
-  failed,
-}
+enum _FormattingResult { unchanged, changed, failed }
 
 Future<_FormattingResult> _formatFile(
   File file, {

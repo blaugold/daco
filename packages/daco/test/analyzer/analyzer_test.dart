@@ -14,11 +14,7 @@ late DacoAnalyzer analyzer;
 
 String writeFile(String path, String content) {
   final fullPath = sandboxFilePath(path);
-  resourceProvider.setOverlay(
-    fullPath,
-    content: content,
-    modificationStamp: 0,
-  );
+  resourceProvider.setOverlay(fullPath, content: content, modificationStamp: 0);
   return fullPath;
 }
 
@@ -28,8 +24,9 @@ void main() {
   });
 
   setUp(() {
-    resourceProvider =
-        OverlayResourceProvider(PhysicalResourceProvider.INSTANCE);
+    resourceProvider = OverlayResourceProvider(
+      PhysicalResourceProvider.INSTANCE,
+    );
     analysisContext = createAnalysisContextCollection(
       includedPaths: [sandboxDir!.path],
       resourceProvider: resourceProvider,
@@ -80,43 +77,34 @@ void main() {
 
       group('comment code block', () {
         test('ignores ignored block', () async {
-          final path = writeFile(
-            'a.dart',
-            '''
+          final path = writeFile('a.dart', '''
 /// ```dart ignore
 /// a
 /// ```
 const a = 'a';
-''',
-          );
+''');
           final errors = await analyzer.getErrors(path);
           expect(errors, isEmpty);
         });
 
         test('ignores block with no_analyze attribute', () async {
-          final path = writeFile(
-            'a.dart',
-            '''
+          final path = writeFile('a.dart', '''
 /// ```dart no_analyze
 /// const int a = 'a';
 /// ```
 const a = 'a';
-''',
-          );
+''');
           final errors = await analyzer.getErrors(path);
           expect(errors, isEmpty);
         });
 
         test('error in block without attributes', () async {
-          final path = writeFile(
-            'a.dart',
-            '''
+          final path = writeFile('a.dart', '''
 /// ```dart
 /// const a = 'a'
 /// ```
 const a = 'a';
-''',
-          );
+''');
           final errors = await analyzer.getErrors(path);
           expect(errors, hasLength(1));
           expect(errors.first.offset, 26);
@@ -124,15 +112,12 @@ const a = 'a';
         });
 
         test('error in main block', () async {
-          final path = writeFile(
-            'a.dart',
-            '''
+          final path = writeFile('a.dart', '''
 /// ```dart main
 /// print();
 /// ```
 const a = 'a';
-''',
-          );
+''');
           final errors = await analyzer.getErrors(path);
           expect(errors, hasLength(1));
           expect(errors.first.offset, 27);
@@ -144,9 +129,7 @@ const a = 'a';
         });
 
         test('error in multi-part code example', () async {
-          final path = writeFile(
-            'a.dart',
-            '''
+          final path = writeFile('a.dart', '''
 /// ```dart multi_begin
 /// const b = 'b';
 /// ```
@@ -155,8 +138,7 @@ const a = 'a';
 /// print();
 /// ```
 const a = 'a';
-''',
-          );
+''');
           final errors = await analyzer.getErrors(path);
           expect(errors, hasLength(1));
           expect(errors.first.offset, 102);
@@ -176,14 +158,11 @@ const a = 'a';
       });
 
       test('error in fenced code block', () async {
-        final path = writeFile(
-          'a.md',
-          '''
+        final path = writeFile('a.md', '''
 ```dart
 const a = 'a'
 ```
-''',
-        );
+''');
         final errors = await analyzer.getErrors(path);
         expect(errors, hasLength(1));
         expect(errors.first.offset, 18);

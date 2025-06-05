@@ -21,8 +21,5 @@ ParseStringResult parseString({
 
   parser.parse(source, withErrorsInRootBlock: withErrorsInRootBlock);
 
-  return ParseStringResultImpl(
-    block: parser.block!,
-    errors: parser.errors!,
-  );
+  return ParseStringResultImpl(block: parser.block!, errors: parser.errors!);
 }

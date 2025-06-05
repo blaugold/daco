@@ -361,10 +361,7 @@ const a = 'a';
 final logger = TestLogger();
 final prettierService = PrettierService(logger: logger.toDacoLogger());
 
-Future<String> testFormat({
-  required String input,
-  int lineLength = 80,
-}) async {
+Future<String> testFormat({required String input, int lineLength = 80}) async {
   final formatter = DacoFormatter(
     prettierService: prettierService,
     lineLength: lineLength,
@@ -397,11 +394,7 @@ Future<void> expectSyntacticErrorAt({
                 'errorCode.type',
                 ErrorType.SYNTACTIC_ERROR,
               )
-              .having(
-                (error) => error.offset,
-                'offset',
-                offset ?? anything,
-              ),
+              .having((error) => error.offset, 'offset', offset ?? anything),
         ),
       ),
     ),

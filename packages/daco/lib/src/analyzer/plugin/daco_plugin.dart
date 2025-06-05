@@ -18,7 +18,7 @@ import 'plugin_server.dart';
 class DacoPlugin extends ServerPlugin {
   /// Creates a new [DacoPlugin].
   DacoPlugin({ResourceProvider? provider})
-      : super(resourceProvider: provider ?? PhysicalResourceProvider.INSTANCE);
+    : super(resourceProvider: provider ?? PhysicalResourceProvider.INSTANCE);
 
   /// Runs an instance of [DacoPlugin] within the analysis server process, in an
   /// isolate spawned by the analysis server.
@@ -29,10 +29,7 @@ class DacoPlugin extends ServerPlugin {
   /// Starts a [PluginServer] that serves instances of [DacoPlugin] to connected
   /// clients.
   static void runRemotely() {
-    PluginServer(
-      pluginFactory: DacoPlugin.new,
-      logMessages: true,
-    ).start();
+    PluginServer(pluginFactory: DacoPlugin.new, logMessages: true).start();
   }
 
   @override
@@ -68,8 +65,9 @@ class DacoPlugin extends ServerPlugin {
   }) async {
     assert(_contextCollection == null);
     _contextCollection = contextCollection;
-    return super
-        .afterNewContextCollection(contextCollection: contextCollection);
+    return super.afterNewContextCollection(
+      contextCollection: contextCollection,
+    );
   }
 
   @override

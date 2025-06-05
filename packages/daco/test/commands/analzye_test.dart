@@ -12,34 +12,26 @@ void main() {
 
   test('analyze Dart file in directory', () async {
     // File with error.
-    final file = await writeFile(
-      'a.dart',
-      '''
+    final file = await writeFile('a.dart', '''
 /// ```dart
 /// const a = 'a'
 /// ```
 const a = 'a';
-''',
-    );
+''');
 
     // File without errors.
-    await writeFile(
-      'b.dart',
-      '''
+    await writeFile('b.dart', '''
 const b = 'b';
-''',
-    );
+''');
 
     final logger = TestLogger();
-    await DacoCommandRunner(logger: logger.toDacoLogger())
-        .run(['analyze', sandboxDir!.path]);
+    await DacoCommandRunner(
+      logger: logger.toDacoLogger(),
+    ).run(['analyze', sandboxDir!.path]);
 
-    expect(
-      logger.output,
-      '''
+    expect(logger.output, '''
 Analyzing ${p.relative(sandboxDir!.path)}...
 ${p.relative(file.path)}:2:15 • Expected to find ';'. • EXPECTED_TOKEN
-''',
-    );
+''');
   });
 }

@@ -6,8 +6,10 @@ import 'package:analyzer/src/diagnostic/diagnostic.dart';
 
 /// Truncates multiline [DiagnosticMessage]s of the [error] to one line.
 AnalysisError truncateMultilineError(AnalysisError error, LineInfo lineInfo) {
-  final problemMessage =
-      _truncateMultilineDiagnosticMessage(error.problemMessage, lineInfo);
+  final problemMessage = _truncateMultilineDiagnosticMessage(
+    error.problemMessage,
+    lineInfo,
+  );
   return AnalysisError.forValues(
     source: error.source,
     offset: problemMessage.offset,
