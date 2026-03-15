@@ -10,8 +10,7 @@ import 'logging.dart';
 import 'utils.dart';
 
 final _serverPath = packageRoot.then((dir) => p.join(dir, 'prettier-server'));
-final _lockFilePath =
-    _serverPath.then((dir) => p.join(dir, '.install-lock'));
+final _lockFilePath = _serverPath.then((dir) => p.join(dir, '.install-lock'));
 final _serverEntrypoint = _serverPath.then(
   (dir) => p.join(dir, 'dist/tsc-out/index.js'),
 );
@@ -77,7 +76,7 @@ class PrettierService {
       } finally {
         try {
           File(lockFilePath).deleteSync();
-        } catch (_) {}
+        } on FileSystemException catch (_) {}
       }
     } else {
       // Another isolate or process is already installing. Wait for it.
@@ -91,7 +90,7 @@ class PrettierService {
             'Timed out waiting for prettier server installation.',
           );
         }
-        await Future.delayed(const Duration(milliseconds: 200));
+        await Future<void>.delayed(const Duration(milliseconds: 200));
       }
     }
   }
