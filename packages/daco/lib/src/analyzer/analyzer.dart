@@ -238,37 +238,3 @@ class _CodeExampleResult {
   final ComposedDartBlock composedLibrary;
   final ResolvedUnitResult resolvedUnitResult;
 }
-
-extension on DartCodeExample {
-  ComposedDartBlock buildExampleLibrary({Uri? publicApiFileUri, String? uri}) {
-    final parts = <Object>[
-      if (publicApiFileUri != null) ...[
-        '// ignore: UNUSED_IMPORT',
-        'import "$publicApiFileUri";',
-        '',
-      ],
-    ];
-
-    final nonMainBlocks = codeBlocks
-        .where((block) => !block.isIgnored && !block.isInMainBody)
-        .toList();
-    final mainBlocks = codeBlocks
-        .where((block) => !block.isIgnored && block.isInMainBody)
-        .toList();
-
-    for (final block in nonMainBlocks) {
-      parts
-        ..add(block)
-        ..add('');
-    }
-
-    if (mainBlocks.isNotEmpty) {
-      parts
-        ..add('Future<void> main() async {')
-        ..addAll(mainBlocks)
-        ..add('}');
-    }
-
-    return ComposedDartBlock(parts, uri: uri);
-  }
-}

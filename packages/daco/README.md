@@ -6,61 +6,35 @@ A tool for maintaining **Da**rt **co**mments (daco).
 - Format doc comments as Markdown
 - Format Dart code examples
 - Analyze Dart code examples
-- Analyzer plugin
-  - Analyzes Dart code examples and provides errors
-
-> This package is in an early stage of development. Please file an
-> [issue][issues] if you find a bug or start a [discussion][discussions] if you
-> have a question.
+  - Analyzer plugin for syntax errors via `dart analyze`
+  - Full semantic analysis via `daco analyze`
 
 # Getting started
 
-1. Make sure you have a recent version of NodeJS (>=14) installed and on the
-   path. daco uses prettier to format Markdown.
+Make sure you have a recent version of NodeJS (>=14) installed and on the path.
+daco uses prettier to format Markdown.
 
-1. Install daco globally:
+1. Add daco as a development dependency:
+
+   ```shell
+   dart pub add --dev daco
+   ```
+
+1. Enable the analyzer plugin in your `analysis_options.yaml` (at the workspace
+   root, or at the package root if not using workspaces):
+
+   ```yaml
+   plugins:
+     daco: ^0.3.0
+   ```
+
+   > Requires Dart 3.10 or later. After modifying the `plugins` section,
+   > restart the Dart Analysis Server.
+
+1. Optional: Install daco globally for the `daco format` CLI command:
 
    ```shell
    dart pub global activate daco
-   ```
-
-1. Optional: Install daco locally:
-
-   ```shell
-   dart pub add --dev daco
-   ```
-
-   When daco is executed within your project, the version that was resolved by
-   `pub get` will be used. To fully lock the version of daco you either need to
-   specify a fixed version (e.g. no `^`) in your `pubspec.yaml` or check
-   `pubspec.lock` into your version control system. The latter option is
-   recommended because it gives `pub get` more flexibility to resolve
-   dependencies.
-
-   By doing this you can ensure that all contributors to a project as well as
-   the CI/CD pipeline use the same version of daco.
-
-1. Format the Dart files within the current directory:
-
-   ```shell
-   daco format .
-   ```
-
-# Install analyzer plugin
-
-1. Add `daco` as a development dependency to the each package where the plugin
-   should be active:
-
-   ```shell
-   dart pub add --dev daco
-   ```
-
-1. Enable the plugin in the package's `analysis_options.yaml`:
-
-   ```yaml
-   analyzer:
-     plugins:
-       - daco
    ```
 
 # Formatting
@@ -129,6 +103,39 @@ location of dartdoc tags after formatting.
 
 daco analyzes the example code in documentation comments.
 
+## Analyzer plugin
+
+With the analyzer plugin installed, `dart analyze` checks example code in
+documentation comments for **syntax errors**. Take for example the following
+file:
+
+````dart
+/// Greets the user.
+///
+/// ```dart
+/// void greet() {
+///   print('hello')
+/// }
+/// ```
+void greet() {}
+````
+
+The example code is missing a semicolon. When running `dart analyze`, an error
+is reported with the correct location in the source file:
+
+```
+warning - lib/greeter.dart:5:17 - Expected to find ';'. - daco_code_example
+```
+
+> Note: The analyzer plugin currently only detects syntax errors. For full
+> semantic analysis (type checking, undefined names, etc.), use `daco analyze`.
+
+## `daco analyze`
+
+The `daco analyze` command performs full semantic analysis of example code,
+including type checking and resolution. The package which contains the example
+code is automatically imported.
+
 Take for example the following file:
 
 ````dart
@@ -149,8 +156,6 @@ printed:
 $ daco analyze
 lib/greeter.dart:4:5 • The named parameter 'name' is required, but there's no corresponding argument. • MISSING_REQUIRED_ARGUMENT
 ```
-
-The package which contains the example code is automatically imported.
 
 # Example code attributes
 
@@ -313,7 +318,6 @@ void greet({required String name}) {}
   - Below template, output of template is injected/updated
 
 [issues]: https://github.com/blaugold/daco/issues
-[discussions]: https://github.com/blaugold/daco/discussions
 
 ---
 
