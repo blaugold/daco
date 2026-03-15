@@ -1,4 +1,4 @@
-import 'package:analyzer/error/error.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:collection/collection.dart';
 
 import 'block.dart';
@@ -95,9 +95,9 @@ class ComposedDartBlock extends ComposedBlock<DartBlock> {
   /// Creates a [ComposedBlock] that represents a Dart compilation unit.
   ComposedDartBlock(super.parts, {super.uri});
 
-  /// Translates an [AnalysisError], that was discovered in [text], to the
-  /// location in the source of the [Block] that contains the error.
-  AnalysisError? translateAnalysisError(AnalysisError error) {
+  /// Translates a [Diagnostic], that was discovered in [text], to the location
+  /// in the source of the [Block] that contains the error.
+  Diagnostic? translateAnalysisError(Diagnostic error) {
     // Translates error to be relative to the [Document] of the
     // composed [DartSource] where the error occurred.
 
@@ -107,11 +107,11 @@ class ComposedDartBlock extends ComposedBlock<DartBlock> {
       return null;
     }
 
-    return AnalysisError.forValues(
+    return Diagnostic.forValues(
       source: offset.block.source,
       offset: offset.block.translateOffset(offset.offset),
       length: error.length,
-      errorCode: error.errorCode,
+      diagnosticCode: error.diagnosticCode,
       message: error.message,
       correctionMessage: error.correctionMessage,
     );

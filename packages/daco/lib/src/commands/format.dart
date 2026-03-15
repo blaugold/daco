@@ -57,7 +57,6 @@ class FormatCommand extends DacoCommand {
     final files =
         await Stream.fromIterable(
               _files.map((e) {
-                // ignore: exhaustive_cases
                 switch (FileSystemEntity.typeSync(e)) {
                   case FileSystemEntityType.file:
                     return File(e);
@@ -100,10 +99,8 @@ class FormatCommand extends DacoCommand {
             if (_setExistIfChanged && exitCode == 0) {
               exitCode = 1;
             }
-            break;
           case _FormattingResult.failed:
             exitCode = 2;
-            break;
         }
       }
     } finally {

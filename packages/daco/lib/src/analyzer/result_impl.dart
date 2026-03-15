@@ -1,6 +1,6 @@
 // ignore_for_file: public_member_api_docs
 
-import 'package:analyzer/error/error.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 
 import 'analysis_session.dart';
 import 'block.dart';
@@ -13,7 +13,7 @@ class ParsedBlockResultImpl extends ParsedBlockResult {
   final Block block;
 
   @override
-  final List<AnalysisError> errors;
+  final List<Diagnostic> errors;
 
   @override
   final DacoAnalysisSession session;
@@ -26,5 +26,5 @@ class ParseStringResultImpl extends ParseStringResult {
   final Block block;
 
   @override
-  final List<AnalysisError> errors;
+  final List<Diagnostic> errors;
 }

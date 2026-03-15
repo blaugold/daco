@@ -1,20 +1,19 @@
 import 'package:analyzer/diagnostic/diagnostic.dart';
-import 'package:analyzer/error/error.dart';
 import 'package:analyzer/source/line_info.dart';
 // ignore: implementation_imports
-import 'package:analyzer/src/diagnostic/diagnostic.dart';
+import 'package:analyzer/src/diagnostic/diagnostic_message.dart';
 
 /// Truncates multiline [DiagnosticMessage]s of the [error] to one line.
-AnalysisError truncateMultilineError(AnalysisError error, LineInfo lineInfo) {
+Diagnostic truncateMultilineError(Diagnostic error, LineInfo lineInfo) {
   final problemMessage = _truncateMultilineDiagnosticMessage(
     error.problemMessage,
     lineInfo,
   );
-  return AnalysisError.forValues(
+  return Diagnostic.forValues(
     source: error.source,
     offset: problemMessage.offset,
     length: problemMessage.length,
-    errorCode: error.errorCode,
+    diagnosticCode: error.diagnosticCode,
     message: problemMessage.messageText(includeUrl: true),
     correctionMessage: error.correctionMessage,
     contextMessages: error.contextMessages

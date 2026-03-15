@@ -1,7 +1,7 @@
 import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart' hide Block;
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/error/error.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:collection/collection.dart';
@@ -28,7 +28,7 @@ class BlockParser {
   Block? block;
 
   /// The errors that were discovered during the last call to [parse].
-  List<AnalysisError>? errors;
+  List<Diagnostic>? errors;
 
   /// Parses the root [Block] for [source] and stores the result in [block] and
   /// [errors].
@@ -48,7 +48,7 @@ class BlockParser {
   void _parseDartSource(Source source, {required bool withErrorsInRootBlock}) {
     final LineInfo lineInfo;
     final CompilationUnit astNode;
-    final List<AnalysisError> errors;
+    final List<Diagnostic> errors;
 
     final result = parseString(
       content: source.contents.data,
@@ -202,7 +202,7 @@ class BlockParser {
         final blockErrors = parseResult.errors
             .map((error) => truncateMultilineError(error, parseResult.lineInfo))
             .map(parseBlock.translateAnalysisError)
-            .whereType<AnalysisError>();
+            .whereType<Diagnostic>();
 
         errors!.addAll(blockErrors);
 
@@ -289,22 +289,16 @@ Iterable<CodeBlockAttribute> _parseCodeBlockAttributes(
     switch (attribute) {
       case 'ignore':
         yield CodeBlockAttribute.ignore;
-        break;
       case 'main':
         yield CodeBlockAttribute.main;
-        break;
       case 'no_format':
         yield CodeBlockAttribute.noFormat;
-        break;
       case 'no_analyze':
         yield CodeBlockAttribute.noAnalyze;
-        break;
       case 'multi_begin':
         yield CodeBlockAttribute.multiBeing;
-        break;
       case 'multi_end':
         yield CodeBlockAttribute.multiEnd;
-        break;
     }
   }
 }

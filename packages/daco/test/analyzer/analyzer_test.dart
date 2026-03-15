@@ -43,7 +43,7 @@ void main() {
     });
 
     group('Dart', () {
-      test('empty file', () async {
+      test('empty file', () {
         final path = writeFile('a.dart', '');
         final result = analyzer.getParsedBlock(path);
         expect(result.errors, isEmpty);
@@ -52,7 +52,7 @@ void main() {
     });
 
     group('Markdown', () {
-      test('empty  file', () async {
+      test('empty  file', () {
         final path = writeFile('a.md', '');
         final result = analyzer.getParsedBlock(path);
         expect(result.errors, isEmpty);

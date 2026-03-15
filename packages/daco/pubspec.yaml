@@ -10,20 +10,20 @@ issue_tracker: https://github.com/blaugold/daco/issues
 resolution: workspace
 
 environment:
-  sdk: ^3.5.0
+  sdk: ^3.10.0
 
 executables:
   daco:
 
 dependencies:
-  analyzer: ^7.0.0
-  analyzer_plugin: ^0.12.0
+  analyzer: ">=10.0.0 <12.0.0"
+  analyzer_plugin: ^0.14.0
   ansi_styles: ^0.3.2+1
   args: ^2.3.1
   cli_launcher: ^0.3.0
   cli_util: ^0.4.0
   collection: ^1.16.0
-  dart_style: ^3.1.0
+  dart_style: ^3.1.7
   http: ^1.0.0
   path: ^1.8.0
   pubspec_parse: ^1.2.0
@@ -32,4 +32,4 @@ dependencies:
 
 dev_dependencies:
   term_glyph: ^1.2.0
-  test: ^1.16.0
+  test: ^1.30.0

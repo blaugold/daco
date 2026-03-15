@@ -62,7 +62,7 @@ class DacoPlugin extends ServerPlugin {
   @override
   Future<void> afterNewContextCollection({
     required AnalysisContextCollection contextCollection,
-  }) async {
+  }) {
     assert(_contextCollection == null);
     _contextCollection = contextCollection;
     return super.afterNewContextCollection(

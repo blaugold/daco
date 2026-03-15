@@ -2,6 +2,7 @@
 
 import 'dart:math';
 
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:collection/collection.dart';
@@ -29,7 +30,7 @@ class DacoFormatter {
 
   /// Formats the given [source] string containing an entire Dart compilation
   /// unit.
-  Future<String> format(String source, {String? path}) async {
+  Future<String> format(String source, {String? path}) {
     final parseResult = parseString(
       text: source,
       uri: path ?? 'file.dart',
@@ -39,9 +40,12 @@ class DacoFormatter {
     return _formatBlock(parseResult.block, lineLength: lineLength);
   }
 
-  void _checkForSyntacticErrors(List<AnalysisError> errors) {
+  void _checkForSyntacticErrors(List<Diagnostic> errors) {
     final syntacticErrors = errors
-        .where((error) => error.errorCode.type == ErrorType.SYNTACTIC_ERROR)
+        .where(
+          (error) =>
+              error.diagnosticCode.type == DiagnosticType.SYNTACTIC_ERROR,
+        )
         .toList();
 
     if (syntacticErrors.isNotEmpty) {
@@ -49,7 +53,7 @@ class DacoFormatter {
     }
   }
 
-  Future<String> _formatBlock(Block block, {required int lineLength}) async {
+  Future<String> _formatBlock(Block block, {required int lineLength}) {
     if (block is DartBlock) {
       return _formatDartBlock(block, lineLength: lineLength);
     } else if (block is MarkdownBlock) {

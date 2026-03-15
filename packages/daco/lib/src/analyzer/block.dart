@@ -1,4 +1,4 @@
-import 'package:analyzer/error/error.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/source/source.dart';
 
@@ -85,9 +85,9 @@ abstract class DartBlock extends Block {
   /// block, in lexical order.
   List<MarkdownBlock> get documentationComments;
 
-  /// Translates an [AnalysisError] that originated in this block's [text] to
-  /// the correct location in [source].
-  AnalysisError translateAnalysisError(AnalysisError error);
+  /// Translates a [Diagnostic] that originated in this block's [text] to the
+  /// correct location in [source].
+  Diagnostic translateAnalysisError(Diagnostic error);
 }
 
 /// A [Block] that contains Markdown.

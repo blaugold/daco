@@ -22,7 +22,7 @@ jobs:
       - name: Setup daco
         run: dart pub global activate daco
       - name: Check formatting of Dart code
-        run: melos format:check
+        run: melos run format:check
 
   analyze:
     timeout-minutes: 15
@@ -57,4 +57,4 @@ jobs:
       - name: Setup daco
         run: dart pub global activate daco
       - name: Run tests
-        run: melos test --no-select
+        run: melos run test

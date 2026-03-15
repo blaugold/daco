@@ -1,6 +1,6 @@
 // ignore_for_file: public_member_api_docs, parameter_assignments
 
-import 'package:analyzer/error/error.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:collection/collection.dart';
@@ -167,21 +167,18 @@ class DartBlockImpl extends BlockImpl implements DartBlock {
   }
 
   @override
-  AnalysisError translateAnalysisError(
-    AnalysisError error, {
-    int errorOffset = 0,
-  }) {
-    // Translate an [AnalysisError] to be relative to the [source].
+  Diagnostic translateAnalysisError(Diagnostic error, {int errorOffset = 0}) {
+    // Translate a [Diagnostic] to be relative to the [source].
 
     if (rootBlock == this) {
       return error;
     }
 
-    return AnalysisError.forValues(
+    return Diagnostic.forValues(
       source: source,
       offset: translateOffset(error.offset + errorOffset),
       length: error.length,
-      errorCode: error.errorCode,
+      diagnosticCode: error.diagnosticCode,
       message: error.message,
       correctionMessage: error.correctionMessage,
     );
