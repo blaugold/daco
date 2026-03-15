@@ -8,13 +8,20 @@ on:
     branches:
       - main
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
 jobs:
   format:
     timeout-minutes: 15
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Setup Dart
         uses: dart-lang/setup-dart@v1
       - name: Setup Melos
@@ -29,16 +36,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Setup Dart
         uses: dart-lang/setup-dart@v1
-      - name: Install dependencies
-        run: dart pub get
+      - name: Setup Melos
+        run: dart pub global activate melos
+      - name: Bootstrap
+        run: melos bootstrap
       - name: Analyze Dart packages
-        uses: invertase/github-action-dart-analyzer@v3
-        with:
-          fatal-infos: true
-          fatal-warnings: true
+        run: melos analyze
 
   test:
     timeout-minutes: 15
@@ -49,7 +55,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Setup Dart
         uses: dart-lang/setup-dart@v1
       - name: Setup Melos
