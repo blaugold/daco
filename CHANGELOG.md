@@ -11,6 +11,27 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 
 Packages with breaking changes:
 
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`daco` - `v0.5.0+1`](#daco---v0501)
+
+---
+
+#### `daco` - `v0.5.0+1`
+
+ - **FIX**: add lib/daco.dart to fix pub.dev publishing ([#49](https://github.com/blaugold/daco/issues/49)). ([dcbc157e](https://github.com/blaugold/daco/commit/dcbc157e1ba1c4a7ff34dbaed400d9565da995a9))
+
+
+## 2026-03-15
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
  - [`daco` - `v0.5.0`](#daco---v050)
 
 Packages with other changes:

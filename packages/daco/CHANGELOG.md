@@ -1,3 +1,7 @@
+## 0.5.0+1
+
+ - **FIX**: add lib/daco.dart to fix pub.dev publishing ([#49](https://github.com/blaugold/daco/issues/49)). ([dcbc157e](https://github.com/blaugold/daco/commit/dcbc157e1ba1c4a7ff34dbaed400d9565da995a9))
+
 ## 0.5.0
 
 > Note: This release has breaking changes.
