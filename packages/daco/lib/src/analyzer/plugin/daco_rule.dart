@@ -101,7 +101,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 
   void _checkCodeExample(DartCodeExample example) {
-    final composedLibrary = _buildExampleLibrary(example);
+    final composedLibrary = example.buildExampleLibrary();
 
     final parseResult = analyzer_utilities.parseString(
       content: composedLibrary.text,
@@ -123,30 +123,4 @@ class _Visitor extends SimpleAstVisitor<void> {
       );
     }
   }
-}
-
-ComposedDartBlock _buildExampleLibrary(DartCodeExample example) {
-  final parts = <Object>[];
-
-  final nonMainBlocks = example.codeBlocks
-      .where((block) => !block.isIgnored && !block.isInMainBody)
-      .toList();
-  final mainBlocks = example.codeBlocks
-      .where((block) => !block.isIgnored && block.isInMainBody)
-      .toList();
-
-  for (final block in nonMainBlocks) {
-    parts
-      ..add(block)
-      ..add('');
-  }
-
-  if (mainBlocks.isNotEmpty) {
-    parts
-      ..add('Future<void> main() async {')
-      ..addAll(mainBlocks)
-      ..add('}');
-  }
-
-  return ComposedDartBlock(parts);
 }
