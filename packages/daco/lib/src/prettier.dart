@@ -56,11 +56,12 @@ class PrettierService {
     // and works correctly across isolates within the same process, unlike
     // fcntl-based file locks which are per-process on Linux.
     final lockFilePath = await _lockFilePath;
+    final lockFile = File(lockFilePath);
     bool acquiredLock;
     try {
-      File(lockFilePath).createSync(exclusive: true);
+      lockFile.createSync(exclusive: true);
       acquiredLock = true;
-    } on FileSystemException {
+    } on PathExistsException {
       acquiredLock = false;
     }
 
@@ -75,11 +76,13 @@ class PrettierService {
         _logger.stdout('prettier server installed.');
       } finally {
         try {
-          File(lockFilePath).deleteSync();
+          lockFile.deleteSync();
         } on FileSystemException catch (_) {}
       }
     } else {
       // Another isolate or process is already installing. Wait for it.
+      // If the lock holder fails and removes the lock without producing the
+      // entrypoint, retry acquiring the lock ourselves.
       if (_logger.isVerbose) {
         _logger.trace('Waiting for prettier server installation...');
       }
@@ -89,6 +92,10 @@ class PrettierService {
           throw Exception(
             'Timed out waiting for prettier server installation.',
           );
+        }
+        if (!lockFile.existsSync()) {
+          // Lock holder finished without producing the entrypoint. Retry.
+          return installPrettierServer();
         }
         await Future<void>.delayed(const Duration(milliseconds: 200));
       }
