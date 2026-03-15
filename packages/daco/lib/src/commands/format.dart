@@ -54,7 +54,7 @@ class FormatCommand extends DacoCommand {
       usageException('No files specified.');
     }
 
-    final files =
+    final files = await filterGitIgnoredFiles(
         await Stream.fromIterable(
               _files.map((e) {
                 switch (FileSystemEntity.typeSync(e)) {
@@ -75,7 +75,7 @@ class FormatCommand extends DacoCommand {
                   ? Stream.value(entity)
                   : findDartFiles(entity as Directory),
             )
-            .toList();
+            .toList());
 
     final prettierService = PrettierService(logger: logger);
     await prettierService.start();
