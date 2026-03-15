@@ -10,8 +10,8 @@ import 'logging.dart';
 import 'utils.dart';
 
 final _serverPath = packageRoot.then((dir) => p.join(dir, 'prettier-server'));
-final _lockFilePath = _serverPath.then((dir) => p.join(dir, 'lock'));
-final _nodeModulesPath = _serverPath.then((dir) => p.join(dir, 'node_modules'));
+final _lockFilePath =
+    _serverPath.then((dir) => p.join(dir, '.install-lock'));
 final _serverEntrypoint = _serverPath.then(
   (dir) => p.join(dir, 'dist/tsc-out/index.js'),
 );
@@ -45,24 +45,54 @@ class PrettierService {
 
   /// Installs the prettier server if it is not already installed.
   Future<void> installPrettierServer() async {
-    // We use a lock file to ensure that the NPM package is only installed once.
-    final lockFile = await File(await _lockFilePath).open(mode: FileMode.write);
-    await lockFile.lock(FileLock.blockingExclusive);
-
-    try {
-      if (Directory(await _nodeModulesPath).existsSync()) {
-        if (_logger.isVerbose) {
-          _logger.trace('prettier server is already installed.');
-        }
-        return;
+    final serverEntrypoint = await _serverEntrypoint;
+    if (File(serverEntrypoint).existsSync()) {
+      if (_logger.isVerbose) {
+        _logger.trace('prettier server is already installed.');
       }
+      return;
+    }
 
-      _logger.stdout('Installing prettier server...');
-      await runProcess('npm', ['ci'], workingDirectory: await _serverPath);
-      _logger.stdout('prettier server installed.');
-    } finally {
-      await lockFile.unlock();
-      await lockFile.close();
+    // Use exclusive file creation as a lock. This is atomic on all platforms
+    // and works correctly across isolates within the same process, unlike
+    // fcntl-based file locks which are per-process on Linux.
+    final lockFilePath = await _lockFilePath;
+    bool acquiredLock;
+    try {
+      File(lockFilePath).createSync(exclusive: true);
+      acquiredLock = true;
+    } on FileSystemException {
+      acquiredLock = false;
+    }
+
+    if (acquiredLock) {
+      try {
+        if (File(serverEntrypoint).existsSync()) {
+          return;
+        }
+
+        _logger.stdout('Installing prettier server...');
+        await runProcess('npm', ['ci'], workingDirectory: await _serverPath);
+        _logger.stdout('prettier server installed.');
+      } finally {
+        try {
+          File(lockFilePath).deleteSync();
+        } catch (_) {}
+      }
+    } else {
+      // Another isolate or process is already installing. Wait for it.
+      if (_logger.isVerbose) {
+        _logger.trace('Waiting for prettier server installation...');
+      }
+      final deadline = DateTime.now().add(const Duration(minutes: 2));
+      while (!File(serverEntrypoint).existsSync()) {
+        if (DateTime.now().isAfter(deadline)) {
+          throw Exception(
+            'Timed out waiting for prettier server installation.',
+          );
+        }
+        await Future.delayed(const Duration(milliseconds: 200));
+      }
     }
   }
 
