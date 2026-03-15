@@ -25,7 +25,10 @@ Future<List<File>> filterGitIgnoredFiles(
     '--stdin',
   ], workingDirectory: workingDirectory);
 
-  process.stdin.writeln(files.map((f) => f.path).join('\n'));
+  // Use forward slashes for git compatibility on Windows.
+  process.stdin.writeln(
+    files.map((f) => f.path.replaceAll(r'\', '/')).join('\n'),
+  );
   await process.stdin.close();
 
   final stdout = await process.stdout
