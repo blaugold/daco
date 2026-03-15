@@ -10,7 +10,6 @@ import 'package:analyzer/src/string_source.dart';
 
 import '../../file_utils.dart';
 import '../block.dart';
-import '../composed_block.dart';
 import '../parser.dart';
 
 /// Analysis rule that checks Dart code examples in documentation comments.

@@ -238,4 +238,3 @@ class _CodeExampleResult {
   final ComposedDartBlock composedLibrary;
   final ResolvedUnitResult resolvedUnitResult;
 }
-
