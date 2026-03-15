@@ -15,6 +15,27 @@ Packages with breaking changes:
 
 Packages with other changes:
 
+ - [`daco` - `v0.5.1`](#daco---v051)
+
+---
+
+#### `daco` - `v0.5.1`
+
+ - **FEAT**: skip gitignored files in daco format ([#50](https://github.com/blaugold/daco/issues/50)). ([51c725c5](https://github.com/blaugold/daco/commit/51c725c50f368b2462b303123220a6b651c7a47c))
+
+
+## 2026-03-15
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
  - [`daco` - `v0.5.0+1`](#daco---v0501)
 
 ---

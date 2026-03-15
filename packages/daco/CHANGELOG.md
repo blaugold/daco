@@ -1,3 +1,7 @@
+## 0.5.1
+
+ - **FEAT**: skip gitignored files in daco format ([#50](https://github.com/blaugold/daco/issues/50)). ([51c725c5](https://github.com/blaugold/daco/commit/51c725c50f368b2462b303123220a6b651c7a47c))
+
 ## 0.5.0+1
 
  - **FIX**: add lib/daco.dart to fix pub.dev publishing ([#49](https://github.com/blaugold/daco/issues/49)). ([dcbc157e](https://github.com/blaugold/daco/commit/dcbc157e1ba1c4a7ff34dbaed400d9565da995a9))
