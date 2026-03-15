@@ -13,3 +13,45 @@ dev_dependencies:
   melos: ^7.4.0
   yaml: ^3.1.2
   yaml_edit: ^2.2.1
+
+melos:
+  name: daco
+  repository: https://github.com/blaugold/daco
+  packages:
+    - packages/daco
+    - packages/daco/example
+
+  ide:
+    intellij: false
+
+  command:
+    version:
+      branch: main
+      hooks:
+        preCommit:
+          description:
+            Hook for the version command that updates version numbers in files.
+          run: dart tool/update_versions.dart && git add .
+
+  scripts:
+    format:
+      description: Formats Dart code in the repository with daco.
+      run: daco format .
+
+    format:check:
+      description: Checks formatting of Dart code in the repository with daco.
+      run: daco format --set-exit-if-changed .
+
+    analyze:
+      description: Analyzes Dart packages in the repository.
+      exec: dart analyze --fatal-infos --fatal-warnings
+
+    test:
+      description: Runs tests.
+      run: dart test
+      exec:
+        concurrency: 1
+      packageFilters:
+        dirExists: test
+
+    build:prettier_server: cd packages/daco/prettier-server && npm run build
