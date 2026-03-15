@@ -46,6 +46,21 @@ jobs:
       - name: Analyze Dart packages
         run: melos analyze
 
+  publish-dry-run:
+    timeout-minutes: 15
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+      - name: Setup Dart
+        uses: dart-lang/setup-dart@v1
+      - name: Install dependencies
+        run: dart pub get
+        working-directory: packages/daco
+      - name: Publish dry run
+        run: dart pub publish --dry-run
+        working-directory: packages/daco
+
   test:
     timeout-minutes: 15
     strategy:
