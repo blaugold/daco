@@ -41,14 +41,19 @@ Future<List<File>> filterGitIgnoredFiles(
 
   final ignoredPaths = stdout
       .split('\n')
+      .map((line) => line.trim())
       .where((line) => line.isNotEmpty)
-      .map<String>(p.canonicalize)
+      .map(_normalizePath)
       .toSet();
 
   return files
-      .where((file) => !ignoredPaths.contains(p.canonicalize(file.path)))
+      .where((file) => !ignoredPaths.contains(_normalizePath(file.path)))
       .toList();
 }
+
+/// Normalizes a path for cross-platform comparison by resolving `.` and `..`
+/// segments and converting all separators to forward slashes.
+String _normalizePath(String path) => p.normalize(path).replaceAll(r'\', '/');
 
 /// Whether the file at the given [path] is a Dart file.
 bool isDartFile(String path) => p.extension(path) == '.dart';
