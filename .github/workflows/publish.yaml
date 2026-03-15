@@ -1,0 +1,12 @@
+name: Publish
+
+on:
+  push:
+    tags:
+      - "daco-v*"
+
+jobs:
+  publish:
+    uses: dart-lang/setup-dart/.github/workflows/publish.yml@main
+    with:
+      working-directory: packages/daco
