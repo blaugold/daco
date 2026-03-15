@@ -1,6 +1,6 @@
 // ignore_for_file: public_member_api_docs, parameter_assignments
 
-import 'package:analyzer/error/error.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:collection/collection.dart';
@@ -24,19 +24,19 @@ abstract class BlockImpl extends Block {
     required List<int> lineStartOffsets,
     LineInfo? lineInfo,
     List<String>? attributes,
-  }) : lineInfo = lineInfo ?? LineInfo.fromContent(text),
-       _source = null,
-       _lineStartOffsets = lineStartOffsets,
-       attributes = List.unmodifiable(attributes ?? const []);
+  })  : lineInfo = lineInfo ?? LineInfo.fromContent(text),
+        _source = null,
+        _lineStartOffsets = lineStartOffsets,
+        attributes = List.unmodifiable(attributes ?? const []);
 
   BlockImpl.root({
     required this.text,
     required Source source,
     LineInfo? lineInfo,
-  }) : lineInfo = lineInfo ?? LineInfo.fromContent(text),
-       _source = source,
-       _lineStartOffsets = null,
-       attributes = [] {
+  })  : lineInfo = lineInfo ?? LineInfo.fromContent(text),
+        _source = source,
+        _lineStartOffsets = null,
+        attributes = [] {
     enclosingBlock = null;
   }
 
@@ -107,9 +107,10 @@ abstract class BlockImpl extends Block {
       );
     }
 
-    final blocks =
-        _enclosingBlocks.takeWhile((block) => block != targetBlock).toList()
-          ..add(targetBlock);
+    final blocks = _enclosingBlocks
+        .takeWhile((block) => block != targetBlock)
+        .toList()
+      ..add(targetBlock);
     var from = this;
 
     while (blocks.isNotEmpty) {
@@ -132,15 +133,15 @@ class DartBlockImpl extends BlockImpl implements DartBlock {
     super.lineInfo,
     super.attributes,
     Set<CodeBlockAttribute>? codeBlockAttributes,
-  }) : codeBlockAttributes = Set.unmodifiable(codeBlockAttributes ?? const {}),
-       super.child();
+  })  : codeBlockAttributes = Set.unmodifiable(codeBlockAttributes ?? const {}),
+        super.child();
 
   DartBlockImpl.root({
     required super.text,
     super.lineInfo,
     required super.source,
-  }) : codeBlockAttributes = const {},
-       super.root();
+  })  : codeBlockAttributes = const {},
+        super.root();
 
   @override
   final Set<CodeBlockAttribute> codeBlockAttributes;
@@ -167,21 +168,21 @@ class DartBlockImpl extends BlockImpl implements DartBlock {
   }
 
   @override
-  AnalysisError translateAnalysisError(
-    AnalysisError error, {
+  Diagnostic translateAnalysisError(
+    Diagnostic error, {
     int errorOffset = 0,
   }) {
-    // Translate an [AnalysisError] to be relative to the [source].
+    // Translate a [Diagnostic] to be relative to the [source].
 
     if (rootBlock == this) {
       return error;
     }
 
-    return AnalysisError.forValues(
+    return Diagnostic.forValues(
       source: source,
       offset: translateOffset(error.offset + errorOffset),
       length: error.length,
-      errorCode: error.errorCode,
+      diagnosticCode: error.diagnosticCode,
       message: error.message,
       correctionMessage: error.correctionMessage,
     );
@@ -368,7 +369,7 @@ class DartCodeExampleImpl extends DartCodeExample {
 
   @override
   bool get shouldBeAnalyzed => codeBlocks.every(
-    (block) =>
-        !block.codeBlockAttributes.contains(CodeBlockAttribute.noAnalyze),
-  );
+        (block) =>
+            !block.codeBlockAttributes.contains(CodeBlockAttribute.noAnalyze),
+      );
 }

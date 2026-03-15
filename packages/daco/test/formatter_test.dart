@@ -1,3 +1,4 @@
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:daco/src/formatter.dart';
 import 'package:daco/src/logging.dart';
@@ -388,11 +389,11 @@ Future<void> expectSyntacticErrorAt({
         (error) => error.errors,
         'errors',
         contains(
-          isA<AnalysisError>()
+          isA<Diagnostic>()
               .having(
-                (error) => error.errorCode.type,
-                'errorCode.type',
-                ErrorType.SYNTACTIC_ERROR,
+                (error) => error.diagnosticCode.type,
+                'diagnosticCode.type',
+                DiagnosticType.SYNTACTIC_ERROR,
               )
               .having((error) => error.offset, 'offset', offset ?? anything),
         ),

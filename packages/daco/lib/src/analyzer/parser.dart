@@ -1,7 +1,7 @@
 import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart' hide Block;
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/error/error.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:collection/collection.dart';
@@ -28,7 +28,7 @@ class BlockParser {
   Block? block;
 
   /// The errors that were discovered during the last call to [parse].
-  List<AnalysisError>? errors;
+  List<Diagnostic>? errors;
 
   /// Parses the root [Block] for [source] and stores the result in [block] and
   /// [errors].
@@ -48,7 +48,7 @@ class BlockParser {
   void _parseDartSource(Source source, {required bool withErrorsInRootBlock}) {
     final LineInfo lineInfo;
     final CompilationUnit astNode;
-    final List<AnalysisError> errors;
+    final List<Diagnostic> errors;
 
     final result = parseString(
       content: source.contents.data,
@@ -98,8 +98,8 @@ class BlockParser {
         // We drop the first space of each line, if it exists.
         final lineStart =
             token.lexeme.length > 3 && token.lexeme.codeUnitAt(3) == $SPACE
-            ? 4
-            : 3;
+                ? 4
+                : 3;
         buffer.writeln(token.lexeme.substring(lineStart));
         lineStartOffsets.add(token.offset + lineStart + astOffset);
       }
@@ -145,9 +145,8 @@ class BlockParser {
       // LineInfo returns one-based line numbers and since the code starts
       // on the line after the ```, we need don't need to subtract 1 from
       // `lineNumber`.
-      final firstLineOfCode = block.lineInfo
-          .getLocation(match.start)
-          .lineNumber;
+      final firstLineOfCode =
+          block.lineInfo.getLocation(match.start).lineNumber;
       final buffer = StringBuffer();
       final lineStartOffsets = <int>[];
 
@@ -202,7 +201,7 @@ class BlockParser {
         final blockErrors = parseResult.errors
             .map((error) => truncateMultilineError(error, parseResult.lineInfo))
             .map(parseBlock.translateAnalysisError)
-            .whereType<AnalysisError>();
+            .whereType<Diagnostic>();
 
         errors!.addAll(blockErrors);
 

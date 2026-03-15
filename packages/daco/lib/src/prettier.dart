@@ -74,9 +74,12 @@ class PrettierService {
       _logger.trace('Starting prettier server...');
     }
 
-    _process = await Process.start('node', [
-      await _serverEntrypoint,
-    ], workingDirectory: await _serverPath);
+    _process = await Process.start(
+        'node',
+        [
+          await _serverEntrypoint,
+        ],
+        workingDirectory: await _serverPath);
 
     final readyCompleter = Completer<void>();
 

@@ -12,7 +12,7 @@ import 'logging.dart';
 
 class DacoCommandRunner extends CommandRunner<void> {
   DacoCommandRunner({this.logger})
-    : super('daco', 'A tool for maintaining Dart comments.') {
+      : super('daco', 'A tool for maintaining Dart comments.') {
     argParser.addFlag(
       'verbose',
       abbr: 'v',

@@ -2,6 +2,7 @@
 
 import 'dart:math';
 
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:collection/collection.dart';
@@ -39,9 +40,12 @@ class DacoFormatter {
     return _formatBlock(parseResult.block, lineLength: lineLength);
   }
 
-  void _checkForSyntacticErrors(List<AnalysisError> errors) {
+  void _checkForSyntacticErrors(List<Diagnostic> errors) {
     final syntacticErrors = errors
-        .where((error) => error.errorCode.type == ErrorType.SYNTACTIC_ERROR)
+        .where(
+          (error) =>
+              error.diagnosticCode.type == DiagnosticType.SYNTACTIC_ERROR,
+        )
         .toList();
 
     if (syntacticErrors.isNotEmpty) {
@@ -64,8 +68,7 @@ class DacoFormatter {
     required int lineLength,
   }) async {
     final formatter = DartFormatter(
-      pageWidth:
-          lineLength +
+      pageWidth: lineLength +
           // We add 2 to the line length to account for the indentation within
           // the main function.
           (block.isInMainBody ? 2 : 0),
@@ -125,9 +128,8 @@ class DacoFormatter {
       block.lineInfo,
       lineLength,
     );
-    final formattedBlock =
-        parseString(text: formattedText, uri: 'block.md').block
-            as MarkdownBlock;
+    final formattedBlock = parseString(text: formattedText, uri: 'block.md')
+        .block as MarkdownBlock;
     final formattedCodeBlocks = <DartBlock, String>{};
 
     await Future.wait(

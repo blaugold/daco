@@ -3,7 +3,6 @@
 import 'dart:io';
 
 import 'package:analyzer/diagnostic/diagnostic.dart';
-import 'package:analyzer/error/error.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:ansi_styles/ansi_styles.dart';
 import 'package:path/path.dart' as p;
@@ -66,7 +65,8 @@ class AnalyzeCommand extends DacoCommand {
             .analyzedFiles()
             .where(isDartFile)
             .map(analyzer.session.getErrors),
-      )).expand((errors) => errors);
+      ))
+          .expand((errors) => errors);
 
       if (allErrors.isEmpty) {
         progress.finish(message: 'Found no issues.');
@@ -84,7 +84,7 @@ class AnalyzeCommand extends DacoCommand {
       analysisContext.pubspec?.name ??
       p.relative(analysisContext.contextRoot.root.path);
 
-  void _setExitCode(AnalysisError error) {
+  void _setExitCode(Diagnostic error) {
     if (exitCode != 0) {
       return;
     }
@@ -106,7 +106,7 @@ class AnalyzeCommand extends DacoCommand {
     }
   }
 
-  String _formatError(AnalysisError error) {
+  String _formatError(Diagnostic error) {
     final buffer = StringBuffer();
 
     final lineInfo = LineInfo.fromContent(error.source.contents.data);
@@ -135,7 +135,7 @@ class AnalyzeCommand extends DacoCommand {
       ..write(' $bullet ')
       ..write(error.message)
       ..write(' $bullet ')
-      ..write(errorCodeStyle(error.errorCode.name));
+      ..write(errorCodeStyle(error.diagnosticCode.lowerCaseName));
 
     return buffer.toString();
   }

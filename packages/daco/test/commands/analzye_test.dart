@@ -31,7 +31,7 @@ const b = 'b';
 
     expect(logger.output, '''
 Analyzing ${p.relative(sandboxDir!.path)}...
-${p.relative(file.path)}:2:15 • Expected to find ';'. • EXPECTED_TOKEN
+${p.relative(file.path)}:2:15 • Expected to find ';'. • expected_token
 ''');
   });
 }

@@ -54,29 +54,28 @@ class FormatCommand extends DacoCommand {
       usageException('No files specified.');
     }
 
-    final files =
-        await Stream.fromIterable(
-              _files.map((e) {
-                // ignore: exhaustive_cases
-                switch (FileSystemEntity.typeSync(e)) {
-                  case FileSystemEntityType.file:
-                    return File(e);
-                  case FileSystemEntityType.directory:
-                    return Directory(e);
-                  case FileSystemEntityType.notFound:
-                    return usageException('File not found: $e');
-                  // ignore: no_default_cases
-                  default:
-                    unreachable();
-                }
-              }),
-            )
-            .asyncExpand(
-              (entity) => entity is File
-                  ? Stream.value(entity)
-                  : findDartFiles(entity as Directory),
-            )
-            .toList();
+    final files = await Stream.fromIterable(
+      _files.map((e) {
+        // ignore: exhaustive_cases
+        switch (FileSystemEntity.typeSync(e)) {
+          case FileSystemEntityType.file:
+            return File(e);
+          case FileSystemEntityType.directory:
+            return Directory(e);
+          case FileSystemEntityType.notFound:
+            return usageException('File not found: $e');
+          // ignore: no_default_cases
+          default:
+            unreachable();
+        }
+      }),
+    )
+        .asyncExpand(
+          (entity) => entity is File
+              ? Stream.value(entity)
+              : findDartFiles(entity as Directory),
+        )
+        .toList();
 
     final prettierService = PrettierService(logger: logger);
     await prettierService.start();

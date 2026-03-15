@@ -1,4 +1,4 @@
-import 'package:analyzer/error/error.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 
 import 'analysis_session.dart';
 import 'block.dart';
@@ -9,7 +9,7 @@ abstract class AnalysisResultWithErrors {
   DacoAnalysisSession get session;
 
   /// Errors that where discovered in the analyzed file.
-  List<AnalysisError> get errors;
+  List<Diagnostic> get errors;
 }
 
 /// An analysis result containing the parsed root [Block] for a file.
@@ -28,5 +28,5 @@ abstract class ParseStringResult {
   Block get block;
 
   /// Errors that where discovered during scanning and parsing.
-  List<AnalysisError> get errors;
+  List<Diagnostic> get errors;
 }
