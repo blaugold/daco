@@ -18,7 +18,7 @@ import 'plugin_server.dart';
 class DacoPlugin extends ServerPlugin {
   /// Creates a new [DacoPlugin].
   DacoPlugin({ResourceProvider? provider})
-      : super(resourceProvider: provider ?? PhysicalResourceProvider.INSTANCE);
+    : super(resourceProvider: provider ?? PhysicalResourceProvider.INSTANCE);
 
   /// Runs an instance of [DacoPlugin] within the analysis server process, in an
   /// isolate spawned by the analysis server.
@@ -62,7 +62,7 @@ class DacoPlugin extends ServerPlugin {
   @override
   Future<void> afterNewContextCollection({
     required AnalysisContextCollection contextCollection,
-  }) async {
+  }) {
     assert(_contextCollection == null);
     _contextCollection = contextCollection;
     return super.afterNewContextCollection(

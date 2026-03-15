@@ -1,4 +1,4 @@
-// ignore_for_file: avoid_catches_without_on_clauses, avoid_print
+// ignore_for_file: avoid_print
 
 import 'package:daco/src/logging.dart';
 import 'package:daco/src/prettier.dart';

@@ -98,8 +98,8 @@ class BlockParser {
         // We drop the first space of each line, if it exists.
         final lineStart =
             token.lexeme.length > 3 && token.lexeme.codeUnitAt(3) == $SPACE
-                ? 4
-                : 3;
+            ? 4
+            : 3;
         buffer.writeln(token.lexeme.substring(lineStart));
         lineStartOffsets.add(token.offset + lineStart + astOffset);
       }
@@ -145,8 +145,9 @@ class BlockParser {
       // LineInfo returns one-based line numbers and since the code starts
       // on the line after the ```, we need don't need to subtract 1 from
       // `lineNumber`.
-      final firstLineOfCode =
-          block.lineInfo.getLocation(match.start).lineNumber;
+      final firstLineOfCode = block.lineInfo
+          .getLocation(match.start)
+          .lineNumber;
       final buffer = StringBuffer();
       final lineStartOffsets = <int>[];
 
@@ -288,22 +289,16 @@ Iterable<CodeBlockAttribute> _parseCodeBlockAttributes(
     switch (attribute) {
       case 'ignore':
         yield CodeBlockAttribute.ignore;
-        break;
       case 'main':
         yield CodeBlockAttribute.main;
-        break;
       case 'no_format':
         yield CodeBlockAttribute.noFormat;
-        break;
       case 'no_analyze':
         yield CodeBlockAttribute.noAnalyze;
-        break;
       case 'multi_begin':
         yield CodeBlockAttribute.multiBeing;
-        break;
       case 'multi_end':
         yield CodeBlockAttribute.multiEnd;
-        break;
     }
   }
 }

@@ -65,8 +65,7 @@ class AnalyzeCommand extends DacoCommand {
             .analyzedFiles()
             .where(isDartFile)
             .map(analyzer.session.getErrors),
-      ))
-          .expand((errors) => errors);
+      )).expand((errors) => errors);
 
       if (allErrors.isEmpty) {
         progress.finish(message: 'Found no issues.');
@@ -92,17 +91,14 @@ class AnalyzeCommand extends DacoCommand {
     switch (error.severity) {
       case Severity.error:
         exitCode = 1;
-        break;
       case Severity.warning:
         if (_fatalWarnings) {
           exitCode = 1;
         }
-        break;
       case Severity.info:
         if (_fatalInfos) {
           exitCode = 1;
         }
-        break;
     }
   }
 
@@ -115,14 +111,11 @@ class AnalyzeCommand extends DacoCommand {
     final String Function(String) errorCodeStyle;
     switch (error.severity) {
       case Severity.error:
-        errorCodeStyle = AnsiStyles.red;
-        break;
+        errorCodeStyle = AnsiStyles.red.call;
       case Severity.warning:
-        errorCodeStyle = AnsiStyles.yellow;
-        break;
+        errorCodeStyle = AnsiStyles.yellow.call;
       case Severity.info:
-        errorCodeStyle = AnsiStyles.blue;
-        break;
+        errorCodeStyle = AnsiStyles.blue.call;
     }
 
     buffer

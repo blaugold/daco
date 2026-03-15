@@ -24,19 +24,19 @@ abstract class BlockImpl extends Block {
     required List<int> lineStartOffsets,
     LineInfo? lineInfo,
     List<String>? attributes,
-  })  : lineInfo = lineInfo ?? LineInfo.fromContent(text),
-        _source = null,
-        _lineStartOffsets = lineStartOffsets,
-        attributes = List.unmodifiable(attributes ?? const []);
+  }) : lineInfo = lineInfo ?? LineInfo.fromContent(text),
+       _source = null,
+       _lineStartOffsets = lineStartOffsets,
+       attributes = List.unmodifiable(attributes ?? const []);
 
   BlockImpl.root({
     required this.text,
     required Source source,
     LineInfo? lineInfo,
-  })  : lineInfo = lineInfo ?? LineInfo.fromContent(text),
-        _source = source,
-        _lineStartOffsets = null,
-        attributes = [] {
+  }) : lineInfo = lineInfo ?? LineInfo.fromContent(text),
+       _source = source,
+       _lineStartOffsets = null,
+       attributes = [] {
     enclosingBlock = null;
   }
 
@@ -107,10 +107,9 @@ abstract class BlockImpl extends Block {
       );
     }
 
-    final blocks = _enclosingBlocks
-        .takeWhile((block) => block != targetBlock)
-        .toList()
-      ..add(targetBlock);
+    final blocks =
+        _enclosingBlocks.takeWhile((block) => block != targetBlock).toList()
+          ..add(targetBlock);
     var from = this;
 
     while (blocks.isNotEmpty) {
@@ -133,15 +132,15 @@ class DartBlockImpl extends BlockImpl implements DartBlock {
     super.lineInfo,
     super.attributes,
     Set<CodeBlockAttribute>? codeBlockAttributes,
-  })  : codeBlockAttributes = Set.unmodifiable(codeBlockAttributes ?? const {}),
-        super.child();
+  }) : codeBlockAttributes = Set.unmodifiable(codeBlockAttributes ?? const {}),
+       super.child();
 
   DartBlockImpl.root({
     required super.text,
     super.lineInfo,
     required super.source,
-  })  : codeBlockAttributes = const {},
-        super.root();
+  }) : codeBlockAttributes = const {},
+       super.root();
 
   @override
   final Set<CodeBlockAttribute> codeBlockAttributes;
@@ -168,10 +167,7 @@ class DartBlockImpl extends BlockImpl implements DartBlock {
   }
 
   @override
-  Diagnostic translateAnalysisError(
-    Diagnostic error, {
-    int errorOffset = 0,
-  }) {
+  Diagnostic translateAnalysisError(Diagnostic error, {int errorOffset = 0}) {
     // Translate a [Diagnostic] to be relative to the [source].
 
     if (rootBlock == this) {
@@ -369,7 +365,7 @@ class DartCodeExampleImpl extends DartCodeExample {
 
   @override
   bool get shouldBeAnalyzed => codeBlocks.every(
-        (block) =>
-            !block.codeBlockAttributes.contains(CodeBlockAttribute.noAnalyze),
-      );
+    (block) =>
+        !block.codeBlockAttributes.contains(CodeBlockAttribute.noAnalyze),
+  );
 }

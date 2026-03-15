@@ -30,7 +30,7 @@ class DacoFormatter {
 
   /// Formats the given [source] string containing an entire Dart compilation
   /// unit.
-  Future<String> format(String source, {String? path}) async {
+  Future<String> format(String source, {String? path}) {
     final parseResult = parseString(
       text: source,
       uri: path ?? 'file.dart',
@@ -53,7 +53,7 @@ class DacoFormatter {
     }
   }
 
-  Future<String> _formatBlock(Block block, {required int lineLength}) async {
+  Future<String> _formatBlock(Block block, {required int lineLength}) {
     if (block is DartBlock) {
       return _formatDartBlock(block, lineLength: lineLength);
     } else if (block is MarkdownBlock) {
@@ -68,7 +68,8 @@ class DacoFormatter {
     required int lineLength,
   }) async {
     final formatter = DartFormatter(
-      pageWidth: lineLength +
+      pageWidth:
+          lineLength +
           // We add 2 to the line length to account for the indentation within
           // the main function.
           (block.isInMainBody ? 2 : 0),
@@ -128,8 +129,9 @@ class DacoFormatter {
       block.lineInfo,
       lineLength,
     );
-    final formattedBlock = parseString(text: formattedText, uri: 'block.md')
-        .block as MarkdownBlock;
+    final formattedBlock =
+        parseString(text: formattedText, uri: 'block.md').block
+            as MarkdownBlock;
     final formattedCodeBlocks = <DartBlock, String>{};
 
     await Future.wait(

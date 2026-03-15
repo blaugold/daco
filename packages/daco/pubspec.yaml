@@ -10,7 +10,7 @@ issue_tracker: https://github.com/blaugold/daco/issues
 resolution: workspace
 
 environment:
-  sdk: ^3.5.0
+  sdk: ^3.10.0
 
 executables:
   daco:

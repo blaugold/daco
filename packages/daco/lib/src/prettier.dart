@@ -74,12 +74,9 @@ class PrettierService {
       _logger.trace('Starting prettier server...');
     }
 
-    _process = await Process.start(
-        'node',
-        [
-          await _serverEntrypoint,
-        ],
-        workingDirectory: await _serverPath);
+    _process = await Process.start('node', [
+      await _serverEntrypoint,
+    ], workingDirectory: await _serverPath);
 
     final readyCompleter = Completer<void>();
 
@@ -121,7 +118,6 @@ class PrettierService {
     }
 
     await Future.any([
-      // ignore: void_checks
       _process!.exitCode.then((exitCode) {
         throw Exception('prettier server exited with exit code $exitCode.');
       }),
@@ -185,7 +181,6 @@ class PrettierService {
           ..trace('prettier request #$requestId: success')
           ..trace('prettier requests pending: $_pendingRequests');
       }
-      // ignore: avoid_catches_without_on_clauses
     } catch (e) {
       _pendingRequests--;
 

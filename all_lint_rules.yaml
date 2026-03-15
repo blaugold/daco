@@ -68,7 +68,7 @@ linter:
     - directives_ordering
     # - discarded_futures
     - do_not_use_environment
-    - document_ignores
+    # - document_ignores
     - empty_catches
     - empty_constructor_bodies
     - empty_statements
@@ -235,5 +235,5 @@ linter:
     - use_to_and_as_if_applicable
     - use_truncating_division
     - valid_regexps
-    # - var_with_no_type_annotation # not yet available in current SDK
+    # - var_with_no_type_annotation # not yet available in linter
     - void_checks

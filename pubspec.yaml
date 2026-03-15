@@ -6,7 +6,7 @@ workspace:
   - packages/daco/example
 
 environment:
-  sdk: ^3.5.0
+  sdk: ^3.10.0
 
 dev_dependencies:
   daco: any

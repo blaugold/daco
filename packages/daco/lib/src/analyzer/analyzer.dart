@@ -48,14 +48,13 @@ ByteStore createByteStore() {
 AnalysisContextCollection createAnalysisContextCollection({
   required List<String> includedPaths,
   ResourceProvider? resourceProvider,
-}) =>
-    AnalysisContextCollectionImpl(
-      includedPaths: includedPaths,
-      byteStore: createByteStore(),
-      resourceProvider: resourceProvider is OverlayResourceProvider
-          ? resourceProvider
-          : OverlayResourceProvider(PhysicalResourceProvider.INSTANCE),
-    );
+}) => AnalysisContextCollectionImpl(
+  includedPaths: includedPaths,
+  byteStore: createByteStore(),
+  resourceProvider: resourceProvider is OverlayResourceProvider
+      ? resourceProvider
+      : OverlayResourceProvider(PhysicalResourceProvider.INSTANCE),
+);
 
 /// Implementation of [DacoAnalysisContext] and [DacoAnalysisSession] for
 /// analysis of files in a [contextRoot].
@@ -63,10 +62,11 @@ class DacoAnalyzer implements DacoAnalysisContext, DacoAnalysisSession {
   /// Creates a new [DacoAnalyzer] for analysis of files in the given
   /// [contextRoot].
   DacoAnalyzer({required AnalysisContext analysisContext})
-      : _context = analysisContext,
-        _resourceProvider = analysisContext.contextRoot.resourceProvider
-            as OverlayResourceProvider,
-        contextRoot = analysisContext.contextRoot;
+    : _context = analysisContext,
+      _resourceProvider =
+          analysisContext.contextRoot.resourceProvider
+              as OverlayResourceProvider,
+      contextRoot = analysisContext.contextRoot;
 
   final AnalysisContext _context;
 
