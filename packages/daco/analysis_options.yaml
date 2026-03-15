@@ -1,0 +1,4 @@
+include: ../../analysis_options.yaml
+
+# Don't load the daco plugin when analyzing the daco package itself.
+plugins:

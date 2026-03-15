@@ -39,12 +39,12 @@ interface FormatRequest {
 }
 
 function formatRequestHandler(): express.RequestHandler {
-  return (req, res) => {
+  return async (req, res) => {
     const request = req.body as FormatRequest
 
     try {
       res.send({
-        result: prettier.format(request.source, request.options),
+        result: await prettier.format(request.source, request.options),
       })
     } catch (error) {
       res.status(409).send({ error: error.message })
