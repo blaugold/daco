@@ -95,8 +95,8 @@ class ComposedDartBlock extends ComposedBlock<DartBlock> {
   /// Creates a [ComposedBlock] that represents a Dart compilation unit.
   ComposedDartBlock(super.parts, {super.uri});
 
-  /// Translates a [Diagnostic], that was discovered in [text], to the
-  /// location in the source of the [Block] that contains the error.
+  /// Translates a [Diagnostic], that was discovered in [text], to the location
+  /// in the source of the [Block] that contains the error.
   Diagnostic? translateAnalysisError(Diagnostic error) {
     // Translates error to be relative to the [Document] of the
     // composed [DartSource] where the error occurred.

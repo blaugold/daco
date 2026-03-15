@@ -85,8 +85,8 @@ abstract class DartBlock extends Block {
   /// block, in lexical order.
   List<MarkdownBlock> get documentationComments;
 
-  /// Translates a [Diagnostic] that originated in this block's [text] to
-  /// the correct location in [source].
+  /// Translates a [Diagnostic] that originated in this block's [text] to the
+  /// correct location in [source].
   Diagnostic translateAnalysisError(Diagnostic error);
 }
 
