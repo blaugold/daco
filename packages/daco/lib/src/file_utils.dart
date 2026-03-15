@@ -20,11 +20,10 @@ Future<List<File>> filterGitIgnoredFiles(
     return files;
   }
 
-  final process = await Process.start(
-    'git',
-    ['check-ignore', '--stdin'],
-    workingDirectory: workingDirectory,
-  );
+  final process = await Process.start('git', [
+    'check-ignore',
+    '--stdin',
+  ], workingDirectory: workingDirectory);
 
   process.stdin.writeln(files.map((f) => f.path).join('\n'));
   await process.stdin.close();
@@ -40,12 +39,11 @@ Future<List<File>> filterGitIgnoredFiles(
     return files;
   }
 
-  final ignoredPaths =
-      stdout
-          .split('\n')
-          .where((line) => line.isNotEmpty)
-          .map<String>(p.canonicalize)
-          .toSet();
+  final ignoredPaths = stdout
+      .split('\n')
+      .where((line) => line.isNotEmpty)
+      .map<String>(p.canonicalize)
+      .toSet();
 
   return files
       .where((file) => !ignoredPaths.contains(p.canonicalize(file.path)))

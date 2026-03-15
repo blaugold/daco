@@ -31,10 +31,10 @@ void main() {
       final ignored = File('${tempDir.path}/ignored/file.dart');
       await ignored.writeAsString('');
 
-      final result = await filterGitIgnoredFiles(
-        [kept, ignored],
-        workingDirectory: tempDir.path,
-      );
+      final result = await filterGitIgnoredFiles([
+        kept,
+        ignored,
+      ], workingDirectory: tempDir.path);
 
       expect(result.map((f) => f.path), [kept.path]);
     });
