@@ -39,6 +39,39 @@ void main() {
       expect(result.map((f) => f.path), [kept.path]);
     });
 
+    test(
+      'filters ignored files below symlinked Flutter plugin directories',
+      () async {
+        await Process.run('git', ['init'], workingDirectory: tempDir.path);
+
+        final gitignore = File('${tempDir.path}/.gitignore');
+        await gitignore.writeAsString('linux/flutter/ephemeral/\n');
+
+        final pluginDir = Directory('${tempDir.path}/plugin');
+        await pluginDir.create();
+        final pluginFile = File('${pluginDir.path}/plugin.dart');
+        await pluginFile.writeAsString('');
+
+        final symlink = Link(
+          '${tempDir.path}/linux/flutter/ephemeral/.plugin_symlinks/plugin',
+        );
+        await symlink.parent.create(recursive: true);
+        await symlink.create(pluginDir.path);
+
+        final ignored = File('${symlink.path}/plugin.dart');
+        final kept = File('${tempDir.path}/lib/main.dart');
+        await kept.parent.create(recursive: true);
+        await kept.writeAsString('');
+
+        final result = await filterGitIgnoredFiles([
+          ignored,
+          kept,
+        ], workingDirectory: tempDir.path);
+
+        expect(result.map((f) => f.path), [kept.path]);
+      },
+    );
+
     test('returns all files when not in a git repo', () async {
       final file = File('${tempDir.path}/test.dart');
       await file.writeAsString('');
