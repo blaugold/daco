@@ -31,11 +31,6 @@ Future<List<File>> filterGitIgnoredFiles(
 
   for (final file in files) {
     final filePath = _resolvePath(file.path, from: pathBase);
-    if (!_isInDirectory(filePath, repoRoot)) {
-      gitCheckPathsByFile[file] = const [];
-      continue;
-    }
-
     final fileGitCheckPaths = _gitCheckPathsForFile(filePath, repoRoot);
     gitCheckPathsByFile[file] = fileGitCheckPaths;
     gitCheckPaths.addAll(fileGitCheckPaths);
@@ -62,7 +57,7 @@ Future<List<File>> filterGitIgnoredFiles(
 String _normalizePath(String path) => p.normalize(path).replaceAll(r'\', '/');
 
 Future<String?> _gitRepoRoot({String? workingDirectory}) async {
-  final baseDirectory = p.normalize(workingDirectory ?? Directory.current.path);
+  final baseDirectory = p.absolute(workingDirectory ?? Directory.current.path);
   final result = await Process.run('git', [
     'rev-parse',
     '--show-cdup',
@@ -116,10 +111,13 @@ Future<Set<String>?> _gitIgnoredPaths(
 }
 
 List<String> _gitCheckPathsForFile(String filePath, String repoRoot) {
-  final relativePath = p.relative(filePath, from: repoRoot);
+  final relativePath = _relativePathFromRepoRoot(filePath, repoRoot);
+  if (relativePath == null) {
+    return const [];
+  }
+
   final segments = p.split(relativePath);
   final gitCheckPaths = <String>[];
-
   var currentPath = repoRoot;
   final currentSegments = <String>[];
 
@@ -139,6 +137,21 @@ List<String> _gitCheckPathsForFile(String filePath, String repoRoot) {
 
 String _resolvePath(String path, {required String from}) =>
     p.normalize(p.isAbsolute(path) ? path : p.join(from, path));
+
+String? _relativePathFromRepoRoot(String filePath, String repoRoot) {
+  if (_isInDirectory(filePath, repoRoot)) {
+    return p.relative(filePath, from: repoRoot);
+  }
+
+  final repoRootName = p.basename(repoRoot);
+  final filePathSegments = p.split(filePath);
+  final rootIndex = filePathSegments.lastIndexOf(repoRootName);
+  if (rootIndex == -1 || rootIndex == filePathSegments.length - 1) {
+    return null;
+  }
+
+  return p.joinAll(filePathSegments.skip(rootIndex + 1));
+}
 
 bool _isInDirectory(String path, String directory) =>
     path == directory || p.isWithin(directory, path);

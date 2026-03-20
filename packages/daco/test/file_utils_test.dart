@@ -39,6 +39,31 @@ void main() {
       expect(result.map((f) => f.path), [kept.path]);
     });
 
+    test('filters gitignored files with "." as working directory', () async {
+      final previousCurrent = Directory.current;
+      Directory.current = tempDir;
+      addTearDown(() => Directory.current = previousCurrent);
+
+      await Process.run('git', ['init'], workingDirectory: tempDir.path);
+
+      final gitignore = File('${tempDir.path}/.gitignore');
+      await gitignore.writeAsString('ignored/\n');
+
+      final kept = File('${tempDir.path}/kept.dart');
+      await kept.writeAsString('');
+      final ignoredDir = Directory('${tempDir.path}/ignored');
+      await ignoredDir.create();
+      final ignored = File('${tempDir.path}/ignored/file.dart');
+      await ignored.writeAsString('');
+
+      final result = await filterGitIgnoredFiles([
+        kept,
+        ignored,
+      ], workingDirectory: '.');
+
+      expect(result.map((f) => f.path), [kept.path]);
+    });
+
     test(
       'filters ignored files below symlinked Flutter plugin directories',
       () async {
