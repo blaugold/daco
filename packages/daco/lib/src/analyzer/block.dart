@@ -2,8 +2,6 @@ import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/source/source.dart';
 
-import 'composed_block.dart';
-
 /// A block of [text] that is contained within a [Source].
 ///
 /// The total region a block occupies within its [source] might be larger than
@@ -113,41 +111,4 @@ abstract class DartCodeExample {
 
   /// Whether this code example should be analyzed.
   bool get shouldBeAnalyzed;
-}
-
-/// Extension to build a composable library from a [DartCodeExample].
-extension DartCodeExampleCompose on DartCodeExample {
-  /// Builds a [ComposedDartBlock] representing a complete Dart library from
-  /// this code example.
-  ComposedDartBlock buildExampleLibrary({Uri? publicApiFileUri, String? uri}) {
-    final parts = <Object>[
-      if (publicApiFileUri != null) ...[
-        '// ignore: UNUSED_IMPORT',
-        'import "$publicApiFileUri";',
-        '',
-      ],
-    ];
-
-    final nonMainBlocks = codeBlocks
-        .where((block) => !block.isIgnored && !block.isInMainBody)
-        .toList();
-    final mainBlocks = codeBlocks
-        .where((block) => !block.isIgnored && block.isInMainBody)
-        .toList();
-
-    for (final block in nonMainBlocks) {
-      parts
-        ..add(block)
-        ..add('');
-    }
-
-    if (mainBlocks.isNotEmpty) {
-      parts
-        ..add('Future<void> main() async {')
-        ..addAll(mainBlocks)
-        ..add('}');
-    }
-
-    return ComposedDartBlock(parts, uri: uri);
-  }
 }

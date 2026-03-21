@@ -8,6 +8,12 @@ Stream<File> findDartFiles(Directory directory) => directory
     .where((entry) => entry is File && isDartFile(entry.path))
     .cast<File>();
 
+/// Finds all supported source files in the given [directory].
+Stream<File> findSupportedSourceFiles(Directory directory) => directory
+    .list(recursive: true)
+    .where((entry) => entry is File && isSupportedSourceFile(entry.path))
+    .cast<File>();
+
 /// Filters out files that are ignored by git.
 ///
 /// Uses the current working directory to determine the git repository, unless
@@ -63,3 +69,13 @@ bool isDartFile(String path) => p.extension(path) == '.dart';
 
 /// Whether the file at the given [path] is a Markdown file.
 bool isMarkdownFile(String path) => p.extension(path) == '.md';
+
+/// Whether the file at the given [path] is an MDX file.
+bool isMdxFile(String path) => p.extension(path) == '.mdx';
+
+/// Whether the file at the given [path] is a Markdown or MDX file.
+bool isMarkdownLikeFile(String path) => isMarkdownFile(path) || isMdxFile(path);
+
+/// Whether the file at the given [path] is supported by daco.
+bool isSupportedSourceFile(String path) =>
+    isDartFile(path) || isMarkdownLikeFile(path);

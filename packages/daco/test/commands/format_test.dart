@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:daco/src/command_runner.dart';
 import 'package:daco/src/logging.dart';
 import 'package:path/path.dart' as p;
@@ -9,6 +11,7 @@ import '../test_utils.dart';
 void main() {
   setUp(() async {
     ascii = false;
+    exitCode = 0;
     await createSandboxDir();
     await installPrettierServer();
   });
@@ -31,6 +34,130 @@ const a = 'a';
 
     expect(logger.output, '''
 CHANGED   ${p.relative(file.path)}
+''');
+  });
+
+  test('format markdown file', () async {
+    final file = await writeFile('README.md', '''
+# Title
+
+a  a
+
+```dart
+const a =
+  'a';
+```
+''');
+
+    final logger = TestLogger();
+    await DacoCommandRunner(
+      logger: logger.toDacoLogger(),
+    ).run(['format', file.path]);
+
+    expect(file.readAsStringSync(), '''
+# Title
+
+a a
+
+```dart
+const a = 'a';
+```
+''');
+
+    expect(logger.output, '''
+CHANGED   ${p.relative(file.path)}
+''');
+  });
+
+  test('format mdx file without reformatting non-dart content', () async {
+    final file = await writeFile('docs/example.mdx', '''
+---
+title: Example
+---
+
+import CodeBlock from '@theme/CodeBlock'
+
+:::info
+Keep  this  spacing.
+:::
+
+<CodeExample id={1} title="Hello">
+```dart
+const a =
+  'a';
+```
+</CodeExample>
+''');
+
+    final logger = TestLogger();
+    await DacoCommandRunner(
+      logger: logger.toDacoLogger(),
+    ).run(['format', file.path]);
+
+    expect(file.readAsStringSync(), '''
+---
+title: Example
+---
+
+import CodeBlock from '@theme/CodeBlock'
+
+:::info
+Keep  this  spacing.
+:::
+
+<CodeExample id={1} title="Hello">
+```dart
+const a = 'a';
+```
+</CodeExample>
+''');
+
+    expect(logger.output, '''
+CHANGED   ${p.relative(file.path)}
+''');
+  });
+
+  test('format supported files in directory', () async {
+    final dartFile = await writeFile('lib/a.dart', '''
+/// a  a
+const a = 'a';
+''');
+    final markdownFile = await writeFile('docs/README.md', '''
+a  a
+''');
+    final mdxFile = await writeFile('docs/example.mdx', '''
+<CodeExample id={1} title="Hello">
+```dart
+const a =
+  'a';
+```
+</CodeExample>
+''');
+
+    final logger = TestLogger();
+    await DacoCommandRunner(
+      logger: logger.toDacoLogger(),
+    ).run(['format', sandboxDir!.path]);
+
+    expect(dartFile.readAsStringSync(), '''
+/// a a
+const a = 'a';
+''');
+    expect(markdownFile.readAsStringSync(), '''
+a a
+''');
+    expect(mdxFile.readAsStringSync(), '''
+<CodeExample id={1} title="Hello">
+```dart
+const a = 'a';
+```
+</CodeExample>
+''');
+
+    expect(logger.output, '''
+CHANGED   ${p.relative(markdownFile.path)}
+CHANGED   ${p.relative(mdxFile.path)}
+CHANGED   ${p.relative(dartFile.path)}
 ''');
   });
 

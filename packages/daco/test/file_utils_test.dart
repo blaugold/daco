@@ -54,4 +54,19 @@ void main() {
       expect(result, isEmpty);
     });
   });
+
+  group('source file detection', () {
+    test('detects supported source files', () {
+      expect(isSupportedSourceFile('a.dart'), isTrue);
+      expect(isSupportedSourceFile('README.md'), isTrue);
+      expect(isSupportedSourceFile('docs/page.mdx'), isTrue);
+      expect(isSupportedSourceFile('notes.txt'), isFalse);
+    });
+
+    test('detects markdown-like files', () {
+      expect(isMarkdownLikeFile('README.md'), isTrue);
+      expect(isMarkdownLikeFile('docs/page.mdx'), isTrue);
+      expect(isMarkdownLikeFile('a.dart'), isFalse);
+    });
+  });
 }

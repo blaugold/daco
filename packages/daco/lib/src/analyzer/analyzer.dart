@@ -26,6 +26,7 @@ import 'analysis_context.dart';
 import 'analysis_session.dart';
 import 'block.dart';
 import 'composed_block.dart';
+import 'dart_block_utils.dart';
 import 'error/analysis_error_utils.dart';
 import 'exceptions.dart';
 import 'parser.dart';
@@ -61,12 +62,14 @@ AnalysisContextCollection createAnalysisContextCollection({
 class DacoAnalyzer implements DacoAnalysisContext, DacoAnalysisSession {
   /// Creates a new [DacoAnalyzer] for analysis of files in the given
   /// [contextRoot].
-  DacoAnalyzer({required AnalysisContext analysisContext})
-    : _context = analysisContext,
-      _resourceProvider =
-          analysisContext.contextRoot.resourceProvider
-              as OverlayResourceProvider,
-      contextRoot = analysisContext.contextRoot;
+  DacoAnalyzer({
+    required AnalysisContext analysisContext,
+    this.publicApiPackageName,
+  }) : _context = analysisContext,
+       _resourceProvider =
+           analysisContext.contextRoot.resourceProvider
+               as OverlayResourceProvider,
+       contextRoot = analysisContext.contextRoot;
 
   final AnalysisContext _context;
 
@@ -74,6 +77,9 @@ class DacoAnalyzer implements DacoAnalysisContext, DacoAnalysisSession {
 
   @override
   final ContextRoot contextRoot;
+
+  /// The package name whose public API should be imported into code examples.
+  final String? publicApiPackageName;
 
   @override
   DacoAnalysisSession get session => this;
@@ -95,8 +101,9 @@ class DacoAnalyzer implements DacoAnalysisContext, DacoAnalysisSession {
   }
 
   Uri? _resolvePublicApiFileUri() {
-    final publicApiFileUri = pubspec?.let(
-      (it) => Uri.parse('package:${it.name}/${it.name}.dart'),
+    final packageName = publicApiPackageName ?? pubspec?.name;
+    final publicApiFileUri = packageName?.let(
+      (it) => Uri.parse('package:$it/$it.dart'),
     );
 
     final publicApiFile = publicApiFileUri
@@ -105,6 +112,10 @@ class DacoAnalyzer implements DacoAnalysisContext, DacoAnalysisSession {
 
     if (publicApiFile?.exists ?? false) {
       return publicApiFileUri;
+    }
+
+    if (publicApiPackageName != null) {
+      throw PublicApiFileNotFound(publicApiPackageName!);
     }
 
     return null;
@@ -170,39 +181,17 @@ class DacoAnalyzer implements DacoAnalysisContext, DacoAnalysisSession {
     codeExamples = codeExamples.where((example) => example.shouldBeAnalyzed);
 
     final codeExampleResults = await Future.wait(
-      codeExamples.mapIndexed((index, example) async {
+      codeExamples.mapIndexed((index, example) {
         final now = DateTime.now().millisecondsSinceEpoch;
 
         final codeExamplePath = p.join(
           p.dirname(path),
           '${p.basenameWithoutExtension(path)}_$index.dart',
         );
-        final composedLibrary = example.buildExampleLibrary(
-          publicApiFileUri: _publicApiFileUri,
-          uri: codeExamplePath,
-        );
-
-        _resourceProvider.setOverlay(
+        return _resolveCodeExample(
           codeExamplePath,
-          content: composedLibrary.text,
+          example,
           modificationStamp: now,
-        );
-
-        _context.changeFile(codeExamplePath);
-        await _context.applyPendingFileChanges();
-
-        final result = await _context.currentSession.getResolvedUnit(
-          codeExamplePath,
-        );
-
-        if (result is! ResolvedUnitResult) {
-          throw Exception('$result for $codeExamplePath');
-        }
-
-        return _CodeExampleResult(
-          example: example,
-          composedLibrary: composedLibrary,
-          resolvedUnitResult: result,
         );
       }),
     );
@@ -213,6 +202,131 @@ class DacoAnalyzer implements DacoAnalysisContext, DacoAnalysisSession {
       codeExampleResults: codeExampleResults,
     );
   }
+
+  Future<_CodeExampleResult> _resolveCodeExample(
+    String codeExamplePath,
+    DartCodeExample example, {
+    required int modificationStamp,
+  }) async {
+    final ambientDeclarations = <String, String>{};
+
+    while (true) {
+      final composedLibrary = example.buildExampleLibrary(
+        publicApiFileUri: _publicApiFileUri,
+        ambientDeclarations: ambientDeclarations,
+        uri: codeExamplePath,
+      );
+
+      _resourceProvider.setOverlay(
+        codeExamplePath,
+        content: composedLibrary.text,
+        modificationStamp: modificationStamp,
+      );
+
+      _context.changeFile(codeExamplePath);
+      await _context.applyPendingFileChanges();
+
+      final result = await _context.currentSession.getResolvedUnit(
+        codeExamplePath,
+      );
+
+      if (result is! ResolvedUnitResult) {
+        throw Exception('$result for $codeExamplePath');
+      }
+
+      final inferredAmbientDeclarations = _collectAmbientDeclarations(
+        result.diagnostics,
+        composedLibrary,
+        ambientDeclarations,
+      );
+
+      if (inferredAmbientDeclarations.isEmpty) {
+        return _CodeExampleResult(
+          example: example,
+          composedLibrary: composedLibrary,
+          resolvedUnitResult: result,
+        );
+      }
+
+      ambientDeclarations.addAll(inferredAmbientDeclarations);
+    }
+  }
+
+  Map<String, String> _collectAmbientDeclarations(
+    Iterable<Diagnostic> diagnostics,
+    ComposedDartBlock composedLibrary,
+    Map<String, String> currentAmbientDeclarations,
+  ) {
+    final ambientDeclarations = <String, String>{};
+
+    for (final diagnostic in diagnostics) {
+      final end = diagnostic.offset + diagnostic.length;
+      if (diagnostic.offset < 0 || end > composedLibrary.text.length) {
+        continue;
+      }
+
+      final snippet = composedLibrary.text.substring(diagnostic.offset, end);
+
+      switch (diagnostic.diagnosticCode.lowerCaseName) {
+        case 'undefined_identifier':
+        case 'undefined_function':
+          if (_ambientIdentifierRegExp.hasMatch(snippet) &&
+              !currentAmbientDeclarations.containsKey(snippet)) {
+            ambientDeclarations[snippet] = 'dynamic';
+          }
+        case 'argument_type_not_assignable':
+          final type = _extractQuotedType(
+            diagnostic.message,
+            prefix: "parameter type '",
+          );
+          if (type != null &&
+              _ambientIdentifierRegExp.hasMatch(snippet) &&
+              currentAmbientDeclarations[snippet] != type) {
+            ambientDeclarations[snippet] = type;
+          }
+        case 'list_element_type_not_assignable':
+          final type = _extractQuotedType(
+            diagnostic.message,
+            prefix: "list type '",
+          );
+          if (type != null &&
+              _ambientIdentifierRegExp.hasMatch(snippet) &&
+              currentAmbientDeclarations[snippet] != type) {
+            ambientDeclarations[snippet] = type;
+          }
+        case 'for_in_of_invalid_type':
+          final type = diagnostic.message.contains("'Stream'")
+              ? 'Stream<dynamic>'
+              : diagnostic.message.contains("'Iterable'")
+              ? 'Iterable<dynamic>'
+              : null;
+          if (type != null &&
+              _ambientIdentifierRegExp.hasMatch(snippet) &&
+              currentAmbientDeclarations[snippet] != type) {
+            ambientDeclarations[snippet] = type;
+          }
+      }
+    }
+
+    return ambientDeclarations;
+  }
+}
+
+final _ambientIdentifierRegExp = RegExp(r'^[a-z_]\w*$');
+
+String? _extractQuotedType(String message, {required String prefix}) {
+  final start = message.indexOf(prefix);
+  if (start == -1) {
+    return null;
+  }
+
+  final typeStart = start + prefix.length;
+  final typeEnd = message.indexOf("'", typeStart);
+  if (typeEnd == -1) {
+    return null;
+  }
+
+  return message.substring(typeStart, typeEnd);
 }
 
 class _FileResult {

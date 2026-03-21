@@ -9,10 +9,10 @@ import 'package:test/test.dart';
 import 'test_utils.dart';
 
 void main() {
-  group('comments', () {
-    setUpAll(prettierService.start);
-    tearDownAll(prettierService.stop);
+  setUpAll(prettierService.start);
+  tearDownAll(prettierService.stop);
 
+  group('comments', () {
     test(
       'single line comment',
       () => expectFormatterOutput(
@@ -357,33 +357,143 @@ const a = 'a';
       });
     });
   });
+
+  group('standalone docs', () {
+    test(
+      'formats markdown files',
+      () => expectFormatterOutput(
+        path: 'README.md',
+        input: '''
+# Title
+
+a  a
+
+```dart
+const a =
+  'a';
+```
+''',
+        output: '''
+# Title
+
+a a
+
+```dart
+const a = 'a';
+```
+''',
+      ),
+    );
+
+    test(
+      'formats mdx files without reformatting non-dart content',
+      () => expectFormatterOutput(
+        path: 'docs/example.mdx',
+        input: '''
+---
+title: Example
+---
+
+import CodeBlock from '@theme/CodeBlock'
+export const answer = 42
+
+:::info
+Keep  this  spacing.
+:::
+
+<CodeExample id={1} title="Hello">
+```dart
+const a =
+  'a';
+```
+</CodeExample>
+''',
+        output: '''
+---
+title: Example
+---
+
+import CodeBlock from '@theme/CodeBlock'
+export const answer = 42
+
+:::info
+Keep  this  spacing.
+:::
+
+<CodeExample id={1} title="Hello">
+```dart
+const a = 'a';
+```
+</CodeExample>
+''',
+        ),
+    );
+
+    test(
+      'formats snippet style mdx code as main body',
+      () => expectFormatterOutput(
+        path: 'docs/example.mdx',
+        input: '''
+<CodeExample id={1} title="Hello">
+```dart
+if (data == null) {
+return;
+}
+
+await collection.saveDocument(doc);
+```
+</CodeExample>
+''',
+        output: '''
+<CodeExample id={1} title="Hello">
+```dart
+if (data == null) {
+  return;
+}
+
+await collection.saveDocument(doc);
+```
+</CodeExample>
+''',
+      ),
+    );
+  });
 }
 
 final logger = TestLogger();
 final prettierService = PrettierService(logger: logger.toDacoLogger());
 
-Future<String> testFormat({required String input, int lineLength = 80}) {
+Future<String> testFormat({
+  required String input,
+  String path = 'file.dart',
+  int lineLength = 80,
+}) {
   final formatter = DacoFormatter(
     prettierService: prettierService,
     lineLength: lineLength,
   );
-  return formatter.format(input);
+  return formatter.format(input, path: path);
 }
 
 Future<void> expectFormatterOutput({
   required String input,
   required String output,
+  String path = 'file.dart',
   int lineLength = 80,
 }) async {
-  expect(await testFormat(input: input, lineLength: lineLength), output);
+  expect(
+    await testFormat(input: input, path: path, lineLength: lineLength),
+    output,
+  );
 }
 
 Future<void> expectSyntacticErrorAt({
   required String input,
+  String path = 'file.dart',
   int? offset,
 }) async {
   expect(
-    () => testFormat(input: input),
+    () => testFormat(input: input, path: path),
     throwsA(
       isA<FormatterException>().having(
         (error) => error.errors,

@@ -223,6 +223,20 @@ b
         expect(codeBlock.translateOffset(0), 12);
         expect(codeBlock.translateOffset(2), 16);
       });
+
+      test('infers main body for snippet style code', () {
+        final block = parseMarkdown('''
+```dart
+if (data == null) {
+  return;
+}
+
+await collection.saveDocument(doc);
+```
+''');
+
+        expect(block.dartCodeBlocks.single.isInMainBody, isTrue);
+      });
     });
 
     group('Dart code examples', () {

@@ -132,6 +132,7 @@ class DartBlockImpl extends BlockImpl implements DartBlock {
     super.lineInfo,
     super.attributes,
     Set<CodeBlockAttribute>? codeBlockAttributes,
+    this.isImplicitMainBody = false,
   }) : codeBlockAttributes = Set.unmodifiable(codeBlockAttributes ?? const {}),
        super.child();
 
@@ -140,16 +141,20 @@ class DartBlockImpl extends BlockImpl implements DartBlock {
     super.lineInfo,
     required super.source,
   }) : codeBlockAttributes = const {},
+       isImplicitMainBody = false,
        super.root();
 
   @override
   final Set<CodeBlockAttribute> codeBlockAttributes;
+
+  final bool isImplicitMainBody;
 
   @override
   bool get isIgnored => codeBlockAttributes.contains(CodeBlockAttribute.ignore);
 
   @override
   bool get isInMainBody =>
+      isImplicitMainBody ||
       codeBlockAttributes.contains(CodeBlockAttribute.main);
 
   @override
@@ -248,6 +253,33 @@ class DartBlockImpl extends BlockImpl implements DartBlock {
     buffer.write(text.substring(lastCommentSpan!.end));
 
     return buffer.toString();
+  }
+
+  DartBlockImpl sliceLines(
+    int startLine,
+    int endLine, {
+    required bool inMainBody,
+  }) {
+    final lines = text.split('\n');
+    final childText = lines.sublist(startLine, endLine).join('\n');
+    final lineStartOffsets = <int>[];
+
+    var offset = 0;
+    for (var index = 0; index < lines.length; index++) {
+      if (index >= startLine && index < endLine) {
+        lineStartOffsets.add(offset);
+      }
+      offset += lines[index].length + 1;
+    }
+
+    final child = DartBlockImpl.child(
+      text: childText,
+      lineStartOffsets: lineStartOffsets,
+      attributes: attributes,
+      codeBlockAttributes: codeBlockAttributes,
+      isImplicitMainBody: inMainBody,
+    )..enclosingBlock = this;
+    return child;
   }
 }
 

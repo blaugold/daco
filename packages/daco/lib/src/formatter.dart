@@ -9,8 +9,10 @@ import 'package:collection/collection.dart';
 import 'package:dart_style/dart_style.dart';
 
 import 'analyzer/block.dart';
+import 'analyzer/dart_block_utils.dart';
 import 'analyzer/utils.dart';
 import 'char_codes.dart';
+import 'file_utils.dart';
 import 'prettier.dart';
 import 'utils.dart';
 
@@ -31,13 +33,18 @@ class DacoFormatter {
   /// Formats the given [source] string containing an entire Dart compilation
   /// unit.
   Future<String> format(String source, {String? path}) {
+    final resolvedPath = path ?? 'file.dart';
     final parseResult = parseString(
       text: source,
-      uri: path ?? 'file.dart',
+      uri: resolvedPath,
       withErrorsInRootBlock: true,
     );
     _checkForSyntacticErrors(parseResult.errors);
-    return _formatBlock(parseResult.block, lineLength: lineLength);
+    return _formatBlock(
+      parseResult.block,
+      lineLength: lineLength,
+      path: resolvedPath,
+    );
   }
 
   void _checkForSyntacticErrors(List<Diagnostic> errors) {
@@ -53,10 +60,17 @@ class DacoFormatter {
     }
   }
 
-  Future<String> _formatBlock(Block block, {required int lineLength}) {
+  Future<String> _formatBlock(
+    Block block, {
+    required int lineLength,
+    required String path,
+  }) {
     if (block is DartBlock) {
       return _formatDartBlock(block, lineLength: lineLength);
     } else if (block is MarkdownBlock) {
+      if (isMdxFile(path)) {
+        return _formatMdxBlock(block, lineLength: lineLength);
+      }
       return _formatMarkdownBlock(block, lineLength: lineLength);
     } else {
       unreachable();
@@ -67,6 +81,25 @@ class DacoFormatter {
     DartBlock block, {
     required int lineLength,
   }) async {
+    final composition = composeDartBlock(block);
+    if (composition.isMixed) {
+      final formattedTopLevel = await Future.wait(
+        composition.topLevelBlocks.map(
+          (part) => _formatDartBlock(part, lineLength: lineLength),
+        ),
+      );
+      final formattedMainBody = await Future.wait(
+        composition.mainBodyBlocks.map(
+          (part) => _formatDartBlock(part, lineLength: lineLength),
+        ),
+      );
+
+      return [
+        ...formattedTopLevel.where((it) => it.trim().isNotEmpty),
+        ...formattedMainBody.where((it) => it.trim().isNotEmpty),
+      ].join('\n\n');
+    }
+
     final formatter = DartFormatter(
       pageWidth:
           lineLength +
@@ -124,10 +157,11 @@ class DacoFormatter {
     MarkdownBlock block, {
     required int lineLength,
   }) async {
-    final formattedText = await _formatDocumentationCommentMarkdown(
+    final formattedText = await _formatMarkdown(
       block.text,
       block.lineInfo,
       lineLength,
+      parser: 'markdown',
     );
     final formattedBlock =
         parseString(text: formattedText, uri: 'block.md').block
@@ -153,11 +187,37 @@ class DacoFormatter {
     return formattedBlock.replaceEnclosedBlocks(formattedCodeBlocks);
   }
 
-  Future<String> _formatDocumentationCommentMarkdown(
+  Future<String> _formatMdxBlock(
+    MarkdownBlock block, {
+    required int lineLength,
+  }) async {
+    final formattedCodeBlocks = <DartBlock, String>{};
+
+    await Future.wait(
+      block.dartCodeBlocks.map((codeBlock) async {
+        if (!codeBlock.shouldBeFormatted) {
+          return;
+        }
+
+        formattedCodeBlocks[codeBlock] = await _formatDartBlock(
+          codeBlock,
+          lineLength: block.availableLineLength(
+            of: codeBlock,
+            lineLength: lineLength,
+          ),
+        );
+      }),
+    );
+
+    return block.replaceEnclosedBlocks(formattedCodeBlocks);
+  }
+
+  Future<String> _formatMarkdown(
     String text,
     LineInfo lineInfo,
-    int lineLength,
-  ) async {
+    int lineLength, {
+    required String parser,
+  }) async {
     final tagMatches = _dartDocTagRegExp.allMatches(text);
     final tagLines = <int>{};
     for (final match in tagMatches) {
@@ -179,7 +239,7 @@ class DacoFormatter {
 
     text = await prettierService.format(
       text,
-      parser: 'markdown',
+      parser: parser,
       printWidth: lineLength,
       proseWrap: ProseWrap.always,
     );

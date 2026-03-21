@@ -59,6 +59,15 @@ void main() {
         expect(result.block, isA<MarkdownBlock>());
       });
     });
+
+    group('MDX', () {
+      test('empty file', () {
+        final path = writeFile('a.mdx', '');
+        final result = analyzer.getParsedBlock(path);
+        expect(result.errors, isEmpty);
+        expect(result.block, isA<MarkdownBlock>());
+      });
+    });
   });
 
   group('getError', () {
@@ -167,6 +176,38 @@ const a = 'a'
         expect(errors, hasLength(1));
         expect(errors.first.offset, 18);
         expect(errors.first.length, 3);
+      });
+    });
+
+    group('MDX', () {
+      test('error in fenced code block', () async {
+        final path = writeFile('a.mdx', '''
+<CodeExample id={1} title="Hello">
+```dart
+const a = 'a'
+```
+</CodeExample>
+        ''');
+        final errors = await analyzer.getErrors(path);
+        expect(errors, hasLength(1));
+        expect(errors.first.offset, 53);
+        expect(errors.first.length, 3);
+      });
+
+      test('supports snippet style code with ambient identifiers', () async {
+        final path = writeFile('a.mdx', '''
+<CodeExample id={1} title="Hello">
+```dart
+if (data == null) {
+  return;
+}
+
+await collection.saveDocument(doc);
+```
+</CodeExample>
+''');
+        final errors = await analyzer.getErrors(path);
+        expect(errors, isEmpty);
       });
     });
   });
