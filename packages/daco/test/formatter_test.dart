@@ -386,6 +386,31 @@ const a = 'a';
     );
 
     test(
+      'leaves invalid fenced code unchanged in markdown files',
+      () => expectFormatterOutput(
+        path: 'README.md',
+        input: '''
+# Title
+
+```dart
+void greet() {
+  print('hello')
+}
+```
+''',
+        output: '''
+# Title
+
+```dart
+void greet() {
+  print('hello')
+}
+```
+''',
+      ),
+    );
+
+    test(
       'formats mdx files without reformatting non-dart content',
       () => expectFormatterOutput(
         path: 'docs/example.mdx',
@@ -426,7 +451,7 @@ const a = 'a';
 ```
 </CodeExample>
 ''',
-        ),
+      ),
     );
 
     test(
@@ -458,6 +483,26 @@ await collection.saveDocument(doc);
       ),
     );
   });
+
+  test(
+    'formats full dart files without treating declarations as snippets',
+    () => expectFormatterOutput(
+      input: '''
+class Greeter {
+  Future<void> greet() async {
+    await Future<void>.value();
+  }
+}
+''',
+      output: '''
+class Greeter {
+  Future<void> greet() async {
+    await Future<void>.value();
+  }
+}
+''',
+    ),
+  );
 }
 
 final logger = TestLogger();

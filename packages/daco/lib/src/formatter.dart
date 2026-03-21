@@ -39,7 +39,9 @@ class DacoFormatter {
       uri: resolvedPath,
       withErrorsInRootBlock: true,
     );
-    _checkForSyntacticErrors(parseResult.errors);
+    if (isDartFile(resolvedPath)) {
+      _checkForSyntacticErrors(parseResult.errors);
+    }
     return _formatBlock(
       parseResult.block,
       lineLength: lineLength,
@@ -81,23 +83,25 @@ class DacoFormatter {
     DartBlock block, {
     required int lineLength,
   }) async {
-    final composition = composeDartBlock(block);
-    if (composition.isMixed) {
-      final formattedTopLevel = await Future.wait(
-        composition.topLevelBlocks.map(
-          (part) => _formatDartBlock(part, lineLength: lineLength),
-        ),
-      );
-      final formattedMainBody = await Future.wait(
-        composition.mainBodyBlocks.map(
-          (part) => _formatDartBlock(part, lineLength: lineLength),
-        ),
-      );
+    if (block.enclosingBlock != null) {
+      final composition = composeDartBlock(block);
+      if (composition.isMixed) {
+        final formattedTopLevel = await Future.wait(
+          composition.topLevelBlocks.map(
+            (part) => _formatDartBlock(part, lineLength: lineLength),
+          ),
+        );
+        final formattedMainBody = await Future.wait(
+          composition.mainBodyBlocks.map(
+            (part) => _formatDartBlock(part, lineLength: lineLength),
+          ),
+        );
 
-      return [
-        ...formattedTopLevel.where((it) => it.trim().isNotEmpty),
-        ...formattedMainBody.where((it) => it.trim().isNotEmpty),
-      ].join('\n\n');
+        return [
+          ...formattedTopLevel.where((it) => it.trim().isNotEmpty),
+          ...formattedMainBody.where((it) => it.trim().isNotEmpty),
+        ].join('\n\n');
+      }
     }
 
     final formatter = DartFormatter(
@@ -174,13 +178,16 @@ class DacoFormatter {
           return;
         }
 
-        formattedCodeBlocks[codeBlock] = await _formatDartBlock(
+        final formattedCodeBlock = await _tryFormatEmbeddedDartBlock(
           codeBlock,
           lineLength: formattedBlock.availableLineLength(
             of: codeBlock,
             lineLength: lineLength,
           ),
         );
+        if (formattedCodeBlock != null) {
+          formattedCodeBlocks[codeBlock] = formattedCodeBlock;
+        }
       }),
     );
 
@@ -199,17 +206,33 @@ class DacoFormatter {
           return;
         }
 
-        formattedCodeBlocks[codeBlock] = await _formatDartBlock(
+        final formattedCodeBlock = await _tryFormatEmbeddedDartBlock(
           codeBlock,
           lineLength: block.availableLineLength(
             of: codeBlock,
             lineLength: lineLength,
           ),
         );
+        if (formattedCodeBlock != null) {
+          formattedCodeBlocks[codeBlock] = formattedCodeBlock;
+        }
       }),
     );
 
     return block.replaceEnclosedBlocks(formattedCodeBlocks);
+  }
+
+  Future<String?> _tryFormatEmbeddedDartBlock(
+    DartBlock block, {
+    required int lineLength,
+  }) async {
+    try {
+      return await _formatDartBlock(block, lineLength: lineLength);
+    } on FormatterException {
+      // Leave invalid embedded examples unchanged so formatting still works for
+      // the surrounding document.
+      return null;
+    }
   }
 
   Future<String> _formatMarkdown(

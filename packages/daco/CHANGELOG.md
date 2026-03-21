@@ -1,20 +1,34 @@
 ## 0.5.1
 
- - **FEAT**: skip gitignored files in daco format ([#50](https://github.com/blaugold/daco/issues/50)). ([51c725c5](https://github.com/blaugold/daco/commit/51c725c50f368b2462b303123220a6b651c7a47c))
+- **FEAT**: skip gitignored files in daco format
+  ([#50](https://github.com/blaugold/daco/issues/50)).
+  ([51c725c5](https://github.com/blaugold/daco/commit/51c725c50f368b2462b303123220a6b651c7a47c))
 
 ## 0.5.0+1
 
- - **FIX**: add lib/daco.dart to fix pub.dev publishing ([#49](https://github.com/blaugold/daco/issues/49)). ([dcbc157e](https://github.com/blaugold/daco/commit/dcbc157e1ba1c4a7ff34dbaed400d9565da995a9))
+- **FIX**: add lib/daco.dart to fix pub.dev publishing
+  ([#49](https://github.com/blaugold/daco/issues/49)).
+  ([dcbc157e](https://github.com/blaugold/daco/commit/dcbc157e1ba1c4a7ff34dbaed400d9565da995a9))
 
 ## 0.5.0
 
 > Note: This release has breaking changes.
 
- - **FIX**: use atomic file creation for prettier server install lock ([#37](https://github.com/blaugold/daco/issues/37)). ([d14cd63f](https://github.com/blaugold/daco/commit/d14cd63f4dfc1df4dff52a2e0fd36f1360fde6fe))
- - **BREAKING** **FEAT**: bump prettier server dependencies to latest ([#48](https://github.com/blaugold/daco/issues/48)). ([8d69c06e](https://github.com/blaugold/daco/commit/8d69c06e7614d0ea5d7423faf28047bf2f1d6845))
- - **BREAKING** **FEAT**: migrate to analysis_server_plugin ([#39](https://github.com/blaugold/daco/issues/39)). ([dc3ff001](https://github.com/blaugold/daco/commit/dc3ff001af4769ed4a784694e5d216349ce6d760))
- - **BREAKING** **FEAT**: upgrade dependencies, migrate to analyzer 10 API, update lint rules ([#35](https://github.com/blaugold/daco/issues/35)). ([63034671](https://github.com/blaugold/daco/commit/63034671aee5d8f84ed2f7a34855ad69a6af7cdf))
- - **BREAKING** **FEAT**: upgrade to latest `dart_style` ([#34](https://github.com/blaugold/daco/issues/34)). ([25f867a6](https://github.com/blaugold/daco/commit/25f867a676f0c1caa9b711b194ca91ed23baff2e))
+- **FIX**: use atomic file creation for prettier server install lock
+  ([#37](https://github.com/blaugold/daco/issues/37)).
+  ([d14cd63f](https://github.com/blaugold/daco/commit/d14cd63f4dfc1df4dff52a2e0fd36f1360fde6fe))
+- **BREAKING** **FEAT**: bump prettier server dependencies to latest
+  ([#48](https://github.com/blaugold/daco/issues/48)).
+  ([8d69c06e](https://github.com/blaugold/daco/commit/8d69c06e7614d0ea5d7423faf28047bf2f1d6845))
+- **BREAKING** **FEAT**: migrate to analysis_server_plugin
+  ([#39](https://github.com/blaugold/daco/issues/39)).
+  ([dc3ff001](https://github.com/blaugold/daco/commit/dc3ff001af4769ed4a784694e5d216349ce6d760))
+- **BREAKING** **FEAT**: upgrade dependencies, migrate to analyzer 10 API,
+  update lint rules ([#35](https://github.com/blaugold/daco/issues/35)).
+  ([63034671](https://github.com/blaugold/daco/commit/63034671aee5d8f84ed2f7a34855ad69a6af7cdf))
+- **BREAKING** **FEAT**: upgrade to latest `dart_style`
+  ([#34](https://github.com/blaugold/daco/issues/34)).
+  ([25f867a6](https://github.com/blaugold/daco/commit/25f867a676f0c1caa9b711b194ca91ed23baff2e))
 
 ## 0.3.0+1
 
@@ -22,73 +36,115 @@
 
 > Note: This release has breaking changes.
 
- - **BREAKING** **FEAT**: remove code highlighting of code examples ([#30](https://github.com/blaugold/daco/issues/30)). ([1ab7ae1c](https://github.com/blaugold/daco/commit/1ab7ae1ca12369fb16cbc887c522dac4f3e5b193))
+- **BREAKING** **FEAT**: remove code highlighting of code examples
+  ([#30](https://github.com/blaugold/daco/issues/30)).
+  ([1ab7ae1c](https://github.com/blaugold/daco/commit/1ab7ae1ca12369fb16cbc887c522dac4f3e5b193))
 
 ## 0.2.6
 
- - **FEAT**: support Dart 3 ([#29](https://github.com/blaugold/daco/issues/29)). ([caea2dc0](https://github.com/blaugold/daco/commit/caea2dc0a751ba3a241f04fd52fbca9de69a9d60))
+- **FEAT**: support Dart 3 ([#29](https://github.com/blaugold/daco/issues/29)).
+  ([caea2dc0](https://github.com/blaugold/daco/commit/caea2dc0a751ba3a241f04fd52fbca9de69a9d60))
 
 ## 0.2.5+0
 
 ## 0.2.5
 
- - **FEAT**: upgrade `cli_launcher` ([#27](https://github.com/blaugold/daco/issues/27)). ([fc2c463e](https://github.com/blaugold/daco/commit/fc2c463e336cdacc721da8acecff04341ccb4238))
+- **FEAT**: upgrade `cli_launcher`
+  ([#27](https://github.com/blaugold/daco/issues/27)).
+  ([fc2c463e](https://github.com/blaugold/daco/commit/fc2c463e336cdacc721da8acecff04341ccb4238))
 
 ## 0.2.4
 
- - **FEAT**: support installing `daco` locally ([#26](https://github.com/blaugold/daco/issues/26)). ([f3b9f50c](https://github.com/blaugold/daco/commit/f3b9f50cdd5f23ecd7c5ed9316e8f5aadb9efd51))
+- **FEAT**: support installing `daco` locally
+  ([#26](https://github.com/blaugold/daco/issues/26)).
+  ([f3b9f50c](https://github.com/blaugold/daco/commit/f3b9f50cdd5f23ecd7c5ed9316e8f5aadb9efd51))
 
 ## 0.2.3+2
 
- - **FIX**: upgrade `analyzer` dependencies. ([d767ee2c](https://github.com/blaugold/daco/commit/d767ee2c0919c501ae15879efd23829a81e1f684))
+- **FIX**: upgrade `analyzer` dependencies.
+  ([d767ee2c](https://github.com/blaugold/daco/commit/d767ee2c0919c501ae15879efd23829a81e1f684))
 
 ## 0.2.3+1
 
- - **FIX**: lower bound for `path` dependency. ([131e70af](https://github.com/blaugold/daco/commit/131e70af028cefae9dec1eccf7b0d147eef662e9))
+- **FIX**: lower bound for `path` dependency.
+  ([131e70af](https://github.com/blaugold/daco/commit/131e70af028cefae9dec1eccf7b0d147eef662e9))
 
 ## 0.2.3
 
- - **FEAT**: add analyzer plugin ([#22](https://github.com/blaugold/daco/issues/22)). ([c284a619](https://github.com/blaugold/daco/commit/c284a619cba1e35e8423d94f68fa6dca0708723a))
+- **FEAT**: add analyzer plugin
+  ([#22](https://github.com/blaugold/daco/issues/22)).
+  ([c284a619](https://github.com/blaugold/daco/commit/c284a619cba1e35e8423d94f68fa6dca0708723a))
 
 ## 0.2.2+1
 
- - **DOCS**: fix spelling. ([269b8091](https://github.com/blaugold/daco/commit/269b8091e40319a5edc8b5a2877c05420c24223b))
+- **DOCS**: fix spelling.
+  ([269b8091](https://github.com/blaugold/daco/commit/269b8091e40319a5edc8b5a2877c05420c24223b))
 
 ## 0.2.2
 
- - **FEAT**: multi-part code examples ([#21](https://github.com/blaugold/daco/issues/21)). ([4c3157c2](https://github.com/blaugold/daco/commit/4c3157c2c3bdc1f9f8825fffa0371559a8e76aae))
- - **FEAT**: add `no_analyze` attribute ([#19](https://github.com/blaugold/daco/issues/19)). ([bcd41bbb](https://github.com/blaugold/daco/commit/bcd41bbb7cf22058bceeb332bd2874e7fcfac7ee))
- - **FEAT**: add `no_format` attribute ([#18](https://github.com/blaugold/daco/issues/18)). ([6273cf21](https://github.com/blaugold/daco/commit/6273cf214237a4e119fd329af3e45c7af0fba320))
+- **FEAT**: multi-part code examples
+  ([#21](https://github.com/blaugold/daco/issues/21)).
+  ([4c3157c2](https://github.com/blaugold/daco/commit/4c3157c2c3bdc1f9f8825fffa0371559a8e76aae))
+- **FEAT**: add `no_analyze` attribute
+  ([#19](https://github.com/blaugold/daco/issues/19)).
+  ([bcd41bbb](https://github.com/blaugold/daco/commit/bcd41bbb7cf22058bceeb332bd2874e7fcfac7ee))
+- **FEAT**: add `no_format` attribute
+  ([#18](https://github.com/blaugold/daco/issues/18)).
+  ([6273cf21](https://github.com/blaugold/daco/commit/6273cf214237a4e119fd329af3e45c7af0fba320))
 
 ## 0.2.1+1
 
- - **PERF**: persist `ByteStore` to cache analysis results ([#12](https://github.com/blaugold/daco/issues/12)). ([f8d054f1](https://github.com/blaugold/daco/commit/f8d054f193b0d95eaf3a36e6981db3ff18efe62d))
+- **PERF**: persist `ByteStore` to cache analysis results
+  ([#12](https://github.com/blaugold/daco/issues/12)).
+  ([f8d054f1](https://github.com/blaugold/daco/commit/f8d054f193b0d95eaf3a36e6981db3ff18efe62d))
 
 ## 0.2.1
 
- - **FEAT**: add `analyze` command ([#11](https://github.com/blaugold/daco/issues/11)). ([6bed9e38](https://github.com/blaugold/daco/commit/6bed9e3898451656062a78313ea0bcc5e5e2f745))
+- **FEAT**: add `analyze` command
+  ([#11](https://github.com/blaugold/daco/issues/11)).
+  ([6bed9e38](https://github.com/blaugold/daco/commit/6bed9e3898451656062a78313ea0bcc5e5e2f745))
 
 ## 0.2.0+1
 
- - **PERF**: use workers in prettier server ([#10](https://github.com/blaugold/daco/issues/10)). ([3d70b506](https://github.com/blaugold/daco/commit/3d70b50665a5301631fc00e1b01603de1fa07cde))
- - **DOCS**: move dartdoc section to correct place. ([c66f0e0c](https://github.com/blaugold/daco/commit/c66f0e0c72c165911df22c65291d22696ca0508a))
+- **PERF**: use workers in prettier server
+  ([#10](https://github.com/blaugold/daco/issues/10)).
+  ([3d70b506](https://github.com/blaugold/daco/commit/3d70b50665a5301631fc00e1b01603de1fa07cde))
+- **DOCS**: move dartdoc section to correct place.
+  ([c66f0e0c](https://github.com/blaugold/daco/commit/c66f0e0c72c165911df22c65291d22696ca0508a))
 
 ## 0.2.0
 
 > Note: This release has breaking changes.
 
- - **FIX**: identing in `main` code blocks ([#9](https://github.com/blaugold/daco/issues/9)). ([ef09065a](https://github.com/blaugold/daco/commit/ef09065ae41aa657bcbcdc11882ff242f3047b59))
- - **FEAT**: log prettier server installation ([#8](https://github.com/blaugold/daco/issues/8)). ([c6903b63](https://github.com/blaugold/daco/commit/c6903b636a2adc864974c8046e8f82eed0cce112))
- - **FEAT**: add `main` attribute for example code ([#6](https://github.com/blaugold/daco/issues/6)). ([82010ae1](https://github.com/blaugold/daco/commit/82010ae1e62c515f4f7b1c64ab9f06e603d6fccf))
- - **BREAKING** **FEAT**: rename `no_format` attribute to `ignore` ([#7](https://github.com/blaugold/daco/issues/7)). ([0aa3f956](https://github.com/blaugold/daco/commit/0aa3f95648580387310985ce42f0480d2d869187))
+- **FIX**: identing in `main` code blocks
+  ([#9](https://github.com/blaugold/daco/issues/9)).
+  ([ef09065a](https://github.com/blaugold/daco/commit/ef09065ae41aa657bcbcdc11882ff242f3047b59))
+- **FEAT**: log prettier server installation
+  ([#8](https://github.com/blaugold/daco/issues/8)).
+  ([c6903b63](https://github.com/blaugold/daco/commit/c6903b636a2adc864974c8046e8f82eed0cce112))
+- **FEAT**: add `main` attribute for example code
+  ([#6](https://github.com/blaugold/daco/issues/6)).
+  ([82010ae1](https://github.com/blaugold/daco/commit/82010ae1e62c515f4f7b1c64ab9f06e603d6fccf))
+- **BREAKING** **FEAT**: rename `no_format` attribute to `ignore`
+  ([#7](https://github.com/blaugold/daco/issues/7)).
+  ([0aa3f956](https://github.com/blaugold/daco/commit/0aa3f95648580387310985ce42f0480d2d869187))
 
 ## 0.1.1
 
- - **REFACTOR**: expose `LineInfo` on `Source` ([#4](https://github.com/blaugold/daco/issues/4)). ([bf943581](https://github.com/blaugold/daco/commit/bf94358147c0bf3e39e338d2f7f3c424a04a8aa6))
- - **FIX**: don't check code blocks tagged with `no_format` for syntactic errors ([#5](https://github.com/blaugold/daco/issues/5)). ([ea7fc5ab](https://github.com/blaugold/daco/commit/ea7fc5aba02c31d17444c2998536de18ea363138))
- - **FIX**: handle nested fenced code block ([#2](https://github.com/blaugold/daco/issues/2)). ([714fe124](https://github.com/blaugold/daco/commit/714fe1244b2536b96f7a64528f6b1a4a73d51d0e))
- - **FEAT**: report parser error locations in formatted file ([#3](https://github.com/blaugold/daco/issues/3)). ([e76ccf92](https://github.com/blaugold/daco/commit/e76ccf921be84408be1e2da91ec68d4f010e3304))
- - **DOCS**: add basic docs to README. ([6b9aae16](https://github.com/blaugold/daco/commit/6b9aae1655b453cf008423b8b15e35615b61b8a3))
+- **REFACTOR**: expose `LineInfo` on `Source`
+  ([#4](https://github.com/blaugold/daco/issues/4)).
+  ([bf943581](https://github.com/blaugold/daco/commit/bf94358147c0bf3e39e338d2f7f3c424a04a8aa6))
+- **FIX**: don't check code blocks tagged with `no_format` for syntactic errors
+  ([#5](https://github.com/blaugold/daco/issues/5)).
+  ([ea7fc5ab](https://github.com/blaugold/daco/commit/ea7fc5aba02c31d17444c2998536de18ea363138))
+- **FIX**: handle nested fenced code block
+  ([#2](https://github.com/blaugold/daco/issues/2)).
+  ([714fe124](https://github.com/blaugold/daco/commit/714fe1244b2536b96f7a64528f6b1a4a73d51d0e))
+- **FEAT**: report parser error locations in formatted file
+  ([#3](https://github.com/blaugold/daco/issues/3)).
+  ([e76ccf92](https://github.com/blaugold/daco/commit/e76ccf921be84408be1e2da91ec68d4f010e3304))
+- **DOCS**: add basic docs to README.
+  ([6b9aae16](https://github.com/blaugold/daco/commit/6b9aae1655b453cf008423b8b15e35615b61b8a3))
 
 ## 0.1.0
 

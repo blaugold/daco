@@ -30,8 +30,8 @@ daco uses prettier to format Markdown.
      daco: ^0.3.0
    ```
 
-   > Requires Dart 3.10 or later. After modifying the `plugins` section,
-   > restart the Dart Analysis Server.
+   > Requires Dart 3.10 or later. After modifying the `plugins` section, restart
+   > the Dart Analysis Server.
 
 1. Optional: Install daco globally for the `daco format` CLI command:
 
@@ -318,7 +318,7 @@ making the block part of a multi-part code example.
 ///
 /// <!--
 /// ```dart multi_begin
-/// const name =  'Alice';
+/// const name = 'Alice';
 /// ```
 /// -->
 ///

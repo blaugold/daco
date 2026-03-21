@@ -187,7 +187,7 @@ const a = 'a'
 const a = 'a'
 ```
 </CodeExample>
-        ''');
+      ''');
         final errors = await analyzer.getErrors(path);
         expect(errors, hasLength(1));
         expect(errors.first.offset, 53);
@@ -199,7 +199,7 @@ const a = 'a'
 <CodeExample id={1} title="Hello">
 ```dart
 if (data == null) {
-  return;
+return;
 }
 
 await collection.saveDocument(doc);

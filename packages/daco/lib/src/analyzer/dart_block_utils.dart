@@ -49,9 +49,7 @@ extension DartBlockCompose on DartCodeExample {
       mainBlocks.addAll(composition.mainBodyBlocks);
     }
 
-    final existingImports = topLevelBlocks
-        .map((it) => it.text)
-        .join('\n');
+    final existingImports = topLevelBlocks.map((it) => it.text).join('\n');
     final shouldAddPublicApiImport =
         publicApiFileUri != null &&
         !existingImports.contains('import "$publicApiFileUri";');
@@ -74,9 +72,9 @@ extension DartBlockCompose on DartCodeExample {
       parts
         ..add(r'T _$dacoAmbient<T>() => throw UnimplementedError();')
         ..add('');
-      for (
-        final entry in ambientDeclarations.entries.sortedBy((it) => it.key)
-      ) {
+      for (final entry in ambientDeclarations.entries.sortedBy(
+        (it) => it.key,
+      )) {
         parts
           ..add(_buildAmbientDeclaration(entry.key, entry.value))
           ..add('');
