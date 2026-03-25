@@ -37,8 +37,13 @@ class ComposedBlock<T extends Block> {
   }
 
   /// Returns the offset to the start of [block] in [text].
-  int blockOffset(T block) =>
-      _blocks.entries.where((entry) => entry.value == block).first.key.offset;
+  int blockOffset(T block) => _blocks.entries
+      .where(
+        (entry) => entry.value == block || entry.value.enclosingBlock == block,
+      )
+      .first
+      .key
+      .offset;
 }
 
 String _joinParts<T extends Block>(

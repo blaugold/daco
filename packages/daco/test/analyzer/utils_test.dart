@@ -15,5 +15,11 @@ void main() {
       expect(result.block, isA<MarkdownBlock>());
       expect(result.errors, isEmpty);
     });
+
+    test('parse MDX', () {
+      final result = parseString(text: '', uri: 'text.mdx');
+      expect(result.block, isA<MarkdownBlock>());
+      expect(result.errors, isEmpty);
+    });
   });
 }

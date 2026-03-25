@@ -23,3 +23,16 @@ class UnsupportedFileType implements Exception {
   @override
   String toString() => 'UnsupportedFileType: $path';
 }
+
+/// Exception thrown when a requested package public API cannot be resolved.
+class PublicApiFileNotFound implements Exception {
+  /// Creates a new [PublicApiFileNotFound] exception.
+  PublicApiFileNotFound(this.packageName);
+
+  /// The package name whose public API could not be resolved.
+  final String packageName;
+
+  @override
+  String toString() =>
+      'Could not resolve package:$packageName/$packageName.dart.';
+}

@@ -2,15 +2,17 @@
 
 import 'dart:io';
 
+import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:ansi_styles/ansi_styles.dart';
 import 'package:path/path.dart' as p;
 
-import '../analyzer/analysis_context.dart';
 import '../analyzer/analyzer.dart';
+import '../analyzer/exceptions.dart';
 import '../char_codes.dart';
 import '../file_utils.dart';
+import '../utils.dart';
 import 'daco_command.dart';
 
 class AnalyzeCommand extends DacoCommand {
@@ -25,6 +27,12 @@ class AnalyzeCommand extends DacoCommand {
         'fatal-warnings',
         help: 'Treat warning level issues as fatal.',
         defaultsTo: true,
+      )
+      ..addOption(
+        'package',
+        help:
+            'Import the public API of this package into analyzed code '
+            'examples by default.',
       );
   }
 
@@ -32,11 +40,14 @@ class AnalyzeCommand extends DacoCommand {
   String get name => 'analyze';
 
   @override
-  String get description => 'Analyzes example code in documentation comments.';
+  String get description =>
+      'Analyzes embedded Dart examples in Dart, Markdown, and MDX files.';
 
   bool get _fatalInfos => argResults!['fatal-infos']! as bool;
 
   bool get _fatalWarnings => argResults!['fatal-warnings']! as bool;
+
+  String? get _package => argResults!['package'] as String?;
 
   List<String> get _includedPaths {
     final rest = argResults!.rest;
@@ -49,23 +60,42 @@ class AnalyzeCommand extends DacoCommand {
 
   @override
   Future<void> run() async {
+    final files = await _collectFiles();
+    if (files.isEmpty) {
+      return;
+    }
+
     final analysisContexts = createAnalysisContextCollection(
       includedPaths: _includedPaths,
     );
 
-    for (final analysisContext in analysisContexts.contexts) {
-      final analyzer = DacoAnalyzer(analysisContext: analysisContext);
+    final filesByContext = <AnalysisContext, List<File>>{};
+    for (final file in files) {
+      final analysisContext = analysisContexts.contextFor(file.path);
+      filesByContext.putIfAbsent(analysisContext, () => []).add(file);
+    }
 
+    for (final MapEntry(key: analysisContext, value: contextFiles)
+        in filesByContext.entries) {
       final progress = logger.progress(
-        'Analyzing ${_contextRootDisplayName(analyzer)}',
+        'Analyzing ${_contextRootDisplayName(analysisContext)}',
       );
 
-      final allErrors = (await Future.wait(
-        analyzer.contextRoot
-            .analyzedFiles()
-            .where(isDartFile)
-            .map(analyzer.session.getErrors),
-      )).expand((errors) => errors);
+      Iterable<Diagnostic> allErrors;
+      try {
+        final analyzer = DacoAnalyzer(
+          analysisContext: analysisContext,
+          publicApiPackageName: _package,
+        );
+        allErrors = (await Future.wait(
+          contextFiles.map((file) => analyzer.session.getErrors(file.path)),
+        )).expand((errors) => errors);
+      } on PublicApiFileNotFound catch (error) {
+        progress.finish(message: 'Failed.');
+        logger.stderr(error.toString());
+        exitCode = 2;
+        continue;
+      }
 
       if (allErrors.isEmpty) {
         progress.finish(message: 'Found no issues.');
@@ -79,8 +109,42 @@ class AnalyzeCommand extends DacoCommand {
     }
   }
 
-  String _contextRootDisplayName(DacoAnalysisContext analysisContext) =>
-      analysisContext.pubspec?.name ??
+  Future<List<File>> _collectFiles() async {
+    final files = await filterGitIgnoredFiles(
+      await Stream<FileSystemEntity>.fromIterable(
+            _includedPaths.map((path) {
+              switch (FileSystemEntity.typeSync(path)) {
+                case FileSystemEntityType.file:
+                  final file = File(path);
+                  if (!isSupportedSourceFile(file.path)) {
+                    throw usageException('Unsupported file type: $path');
+                  }
+                  return file;
+                case FileSystemEntityType.directory:
+                  return Directory(path);
+                case FileSystemEntityType.link:
+                case FileSystemEntityType.pipe:
+                case FileSystemEntityType.unixDomainSock:
+                  throw usageException('Unsupported path type: $path');
+                case FileSystemEntityType.notFound:
+                  return usageException('File not found: $path');
+              }
+
+              unreachable();
+            }),
+          )
+          .asyncExpand(
+            (entity) => entity is File
+                ? Stream.value(entity)
+                : findSupportedSourceFiles(entity as Directory),
+          )
+          .toList(),
+    );
+    files.sort((a, b) => a.path.compareTo(b.path));
+    return files;
+  }
+
+  String _contextRootDisplayName(AnalysisContext analysisContext) =>
       p.relative(analysisContext.contextRoot.root.path);
 
   void _setExitCode(Diagnostic error) {

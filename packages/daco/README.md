@@ -6,6 +6,8 @@ A tool for maintaining **Da**rt **co**mments (daco).
 - Format doc comments as Markdown
 - Format Dart code examples
 - Analyze Dart code examples
+- Format Markdown and MDX docs with fenced Dart examples
+- Analyze fenced Dart examples in Markdown and MDX docs
   - Analyzer plugin for syntax errors via `dart analyze`
   - Full semantic analysis via `daco analyze`
 
@@ -28,8 +30,8 @@ daco uses prettier to format Markdown.
      daco: ^0.3.0
    ```
 
-   > Requires Dart 3.10 or later. After modifying the `plugins` section,
-   > restart the Dart Analysis Server.
+   > Requires Dart 3.10 or later. After modifying the `plugins` section, restart
+   > the Dart Analysis Server.
 
 1. Optional: Install daco globally for the `daco format` CLI command:
 
@@ -39,7 +41,12 @@ daco uses prettier to format Markdown.
 
 # Formatting
 
-daco formats Dart files, including documentation comments.
+daco formats Dart files, Markdown files, and MDX files.
+
+For Dart files, daco formats documentation comments recursively. For Markdown
+files, daco formats the document as Markdown and formats fenced Dart examples.
+For MDX files, daco preserves surrounding MDX content and formats fenced Dart
+examples in place.
 
 prettier is used to format comments as Markdown. This means that the conventions
 of prettier are applied, such as using `**` to bold text instead of `__`. A nice
@@ -75,6 +82,18 @@ Example code in fenced code blocks that is marked as Dart code is formatted:
 Formatting of example code and documentation comments is **recursive**. That
 means documentation comments in example code are formatted, too.
 
+Standalone docs are supported as well:
+
+````diff
+-```dart
+-const a =
+-  'a';
+-```
++```dart
++const a = 'a';
++```
+````
+
 The example code is parsed and if it contains syntactic errors they are reported
 with correct line and column numbers. This provides a basic check, ensuring that
 the code is at least syntactically correct.
@@ -101,7 +120,8 @@ location of dartdoc tags after formatting.
 
 # Analyzing
 
-daco analyzes the example code in documentation comments.
+daco analyzes the example code in documentation comments and fenced Dart
+examples in Markdown and MDX files.
 
 ## Analyzer plugin
 
@@ -136,6 +156,14 @@ The `daco analyze` command performs full semantic analysis of example code,
 including type checking and resolution. The package which contains the example
 code is automatically imported.
 
+When analyzing docs in a monorepo, the docs may live outside the package they
+document. In that case, use `--package` to select the package whose public API
+should be imported into examples by default:
+
+```shell
+daco analyze --package cbl docs/
+```
+
 Take for example the following file:
 
 ````dart
@@ -160,6 +188,22 @@ lib/greeter.dart:4:5 • The named parameter 'name' is required, but there's no 
 # Example code attributes
 
 Example code can be annotated with attributes to influence how it is processed.
+The same attributes are supported for fenced Dart code in Dart documentation
+comments, Markdown files, and MDX files, and they behave the same in each
+context.
+
+For standalone Markdown and MDX docs, you can think of the whole file as one
+large documentation comment. Dart fenced code blocks are processed separately by
+default and are only composed into one example when you opt in with
+`multi_begin` / `multi_end`.
+The same attributes are supported for fenced Dart code in Dart documentation
+comments, Markdown files, and MDX files, and they behave the same in each
+context.
+
+For standalone Markdown and MDX docs, you can think of the whole file as one
+large documentation comment. Dart fenced code blocks are processed separately by
+default and are only composed into one example when you opt in with
+`multi_begin` / `multi_end`.
 
 ## `main`
 
@@ -290,7 +334,7 @@ making the block part of a multi-part code example.
 ///
 /// <!--
 /// ```dart multi_begin
-/// const name =  'Alice';
+/// const name = 'Alice';
 /// ```
 /// -->
 ///

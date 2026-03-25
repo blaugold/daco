@@ -1,3 +1,4 @@
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart' hide Block;
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -11,6 +12,7 @@ import '../file_utils.dart';
 import 'block.dart';
 import 'block_impl.dart';
 import 'composed_block.dart';
+import 'dart_block_utils.dart';
 import 'error/analysis_error_utils.dart';
 import 'exceptions.dart';
 
@@ -38,7 +40,7 @@ class BlockParser {
 
     if (isDartFile(source.fullName)) {
       _parseDartSource(source, withErrorsInRootBlock: withErrorsInRootBlock);
-    } else if (isMarkdownFile(source.fullName)) {
+    } else if (isMarkdownLikeFile(source.fullName)) {
       _parseMarkdownSource(source);
     } else {
       throw UnsupportedFileType(source.fullName);
@@ -139,7 +141,9 @@ class BlockParser {
           .map((attribute) => attribute.trim())
           .toList();
       final codeBlockAttributes = _parseCodeBlockAttributes(attributes).toSet();
-      final isMain = codeBlockAttributes.contains(CodeBlockAttribute.main);
+      final isExplicitMain = codeBlockAttributes.contains(
+        CodeBlockAttribute.main,
+      );
       final isIgnored = codeBlockAttributes.contains(CodeBlockAttribute.ignore);
 
       // LineInfo returns one-based line numbers and since the code starts
@@ -172,10 +176,24 @@ class BlockParser {
         );
       });
 
+      final rawChildBlock = DartBlockImpl.child(
+        text: buffer.toString(),
+        attributes: attributes,
+        codeBlockAttributes: codeBlockAttributes,
+        lineStartOffsets: lineStartOffsets,
+      );
+      final composition = composeDartBlock(rawChildBlock);
+      final isImplicitMain =
+          !isIgnored &&
+          !isExplicitMain &&
+          composition.topLevelBlocks.isEmpty &&
+          composition.mainBodyBlocks.length == 1 &&
+          !identical(composition.mainBodyBlocks.single, rawChildBlock);
       final childBlock = DartBlockImpl.child(
         text: buffer.toString(),
         attributes: attributes,
         codeBlockAttributes: codeBlockAttributes,
+        isImplicitMainBody: isImplicitMain,
         lineStartOffsets: lineStartOffsets,
       );
 
@@ -188,28 +206,24 @@ class BlockParser {
       );
 
       if (!isIgnored) {
-        final parseBlock = ComposedDartBlock([
-          if (isMain) 'Future<void> main() async {',
-          childBlock,
-          if (isMain) '}',
-        ]);
+        final parsedBlock = _parseDartBlock(childBlock);
 
-        final parseResult = parseString(
-          content: parseBlock.text,
-          throwIfDiagnostics: false,
-        );
-
-        final blockErrors = parseResult.errors
-            .map((error) => truncateMultilineError(error, parseResult.lineInfo))
-            .map(parseBlock.translateAnalysisError)
+        final blockErrors = parsedBlock.parseResult.errors
+            .map(
+              (error) => truncateMultilineError(
+                error,
+                parsedBlock.parseResult.lineInfo,
+              ),
+            )
+            .map(parsedBlock.parseBlock.translateAnalysisError)
             .whereType<Diagnostic>();
 
         errors!.addAll(blockErrors);
 
         _parseDocumentationComments(
           childBlock,
-          parseResult.unit,
-          astOffset: parseBlock.blockOffset(childBlock),
+          parsedBlock.parseResult.unit,
+          astOffset: parsedBlock.parseBlock.blockOffset(childBlock),
         );
       }
     }
@@ -269,6 +283,23 @@ class BlockParser {
         .map((codeBlocks) => DartCodeExampleImpl(codeBlocks: codeBlocks))
         .forEach(block.addDartCodeExamples);
   }
+
+  _ParsedDartBlock _parseDartBlock(DartBlockImpl block) {
+    final composition = composeDartBlock(block);
+    final parseBlock = ComposedDartBlock([
+      ...composition.topLevelBlocks,
+      if (composition.mainBodyBlocks.isNotEmpty) ...[
+        'Future<void> main() async {',
+        ...composition.mainBodyBlocks,
+        '}',
+      ],
+    ]);
+    final parseResult = parseString(
+      content: parseBlock.text,
+      throwIfDiagnostics: false,
+    );
+    return _ParsedDartBlock(parseBlock: parseBlock, parseResult: parseResult);
+  }
 }
 
 class _CommentCollector extends RecursiveAstVisitor<void> {
@@ -301,4 +332,11 @@ Iterable<CodeBlockAttribute> _parseCodeBlockAttributes(
         yield CodeBlockAttribute.multiEnd;
     }
   }
+}
+
+class _ParsedDartBlock {
+  _ParsedDartBlock({required this.parseBlock, required this.parseResult});
+
+  final ComposedDartBlock parseBlock;
+  final ParseStringResult parseResult;
 }

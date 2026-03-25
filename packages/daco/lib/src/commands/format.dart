@@ -6,6 +6,7 @@ import 'package:ansi_styles/ansi_styles.dart';
 import 'package:dart_style/dart_style.dart';
 import 'package:path/path.dart' as p;
 
+import '../analyzer/exceptions.dart';
 import '../file_utils.dart';
 import '../formatter.dart';
 import '../logging.dart';
@@ -30,7 +31,8 @@ class FormatCommand extends DacoCommand {
   }
 
   @override
-  String get description => 'Formats Dart code, including comments.';
+  String get description =>
+      'Formats Dart, Markdown, and MDX files with embedded Dart examples.';
 
   @override
   String get name => 'format';
@@ -59,7 +61,11 @@ class FormatCommand extends DacoCommand {
             _files.map((e) {
               switch (FileSystemEntity.typeSync(e)) {
                 case FileSystemEntityType.file:
-                  return File(e);
+                  final file = File(e);
+                  if (!isSupportedSourceFile(file.path)) {
+                    throw usageException('Unsupported file type: $e');
+                  }
+                  return file;
                 case FileSystemEntityType.directory:
                   return Directory(e);
                 case FileSystemEntityType.notFound:
@@ -73,10 +79,11 @@ class FormatCommand extends DacoCommand {
           .asyncExpand(
             (entity) => entity is File
                 ? Stream.value(entity)
-                : findDartFiles(entity as Directory),
+                : findSupportedSourceFiles(entity as Directory),
           )
           .toList(),
     );
+    files.sort((a, b) => a.path.compareTo(b.path));
 
     final prettierService = PrettierService(logger: logger);
     await prettierService.start();
@@ -126,6 +133,12 @@ Future<_FormattingResult> _formatFile(
     logger
       ..stderr('${AnsiStyles.red('FAILED')}    $relativePath')
       ..stderr(exception.message(color: stdout.supportsAnsiEscapes));
+
+    return _FormattingResult.failed;
+  } on UnsupportedFileType catch (exception) {
+    logger
+      ..stderr('${AnsiStyles.red('FAILED')}    $relativePath')
+      ..stderr(exception.toString());
 
     return _FormattingResult.failed;
   }
