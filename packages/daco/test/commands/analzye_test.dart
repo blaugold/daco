@@ -77,7 +77,7 @@ const a = 'a'
     );
   });
 
-  test('analyze snippet style mdx file with ambient identifiers', () async {
+  test('analyze snippet style mdx file without ambient identifiers', () async {
     final file = await writeFile('docs/example.mdx', '''
 <CodeExample id={1} title="Hello">
 ```dart
@@ -95,8 +95,8 @@ await collection.saveDocument(doc);
       logger: logger.toDacoLogger(),
     ).run(['analyze', file.path]);
 
-    expect(exitCode, 0);
-    expect(logger.output, isNot(contains('undefined_identifier')));
+    expect(exitCode, 1);
+    expect(logger.output, contains('undefined_identifier'));
   });
 
   test('analyze supported files in directory', () async {

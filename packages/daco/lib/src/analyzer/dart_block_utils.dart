@@ -1,7 +1,6 @@
 // ignore_for_file: public_member_api_docs
 
 import 'package:analyzer/dart/analysis/utilities.dart';
-import 'package:collection/collection.dart';
 
 import 'block.dart';
 import 'block_impl.dart';
@@ -16,6 +15,9 @@ final _declarationStartRegExp = RegExp(
 );
 final _functionDeclarationLineRegExp = RegExp(
   r'^\s*(external\s+)?[\w<>\[\]?., ]+\s+\w+\s*\([^;]*\)\s*(async\*?|sync\*?)?\s*(=>|{)\s*$',
+);
+final _controlFlowStatementRegExp = RegExp(
+  r'^\s*(await\s+for|for|if|while|switch|try)\b',
 );
 final _mainBodyIndicatorRegExp = RegExp(
   r'\bawait\b|^\s*(if|for|while|switch|try|return|throw|break|continue)\b',
@@ -35,11 +37,7 @@ class DartBlockComposition {
 }
 
 extension DartBlockCompose on DartCodeExample {
-  ComposedDartBlock buildExampleLibrary({
-    Uri? publicApiFileUri,
-    Map<String, String> ambientDeclarations = const {},
-    String? uri,
-  }) {
+  ComposedDartBlock buildExampleLibrary({Uri? publicApiFileUri, String? uri}) {
     final topLevelBlocks = <DartBlock>[];
     final mainBlocks = <DartBlock>[];
 
@@ -66,19 +64,6 @@ extension DartBlockCompose on DartCodeExample {
       parts
         ..add(block)
         ..add('');
-    }
-
-    if (ambientDeclarations.isNotEmpty) {
-      parts
-        ..add(r'T _$dacoAmbient<T>() => throw UnimplementedError();')
-        ..add('');
-      for (final entry in ambientDeclarations.entries.sortedBy(
-        (it) => it.key,
-      )) {
-        parts
-          ..add(_buildAmbientDeclaration(entry.key, entry.value))
-          ..add('');
-      }
     }
 
     if (mainBlocks.isNotEmpty) {
@@ -217,8 +202,9 @@ int? _consumeTopLevelSection(List<String> lines, int start) {
 }
 
 bool _startsTopLevelDeclaration(String line) =>
-    _declarationStartRegExp.hasMatch(line) ||
-    _functionDeclarationLineRegExp.hasMatch(line);
+    !_controlFlowStatementRegExp.hasMatch(line) &&
+    (_declarationStartRegExp.hasMatch(line) ||
+        _functionDeclarationLineRegExp.hasMatch(line));
 
 int? _nextNonEmptyLine(List<String> lines, int start) {
   for (var index = start; index < lines.length; index++) {
@@ -268,6 +254,3 @@ int _consumeDeclaration(List<String> lines, int start) {
 
   return lines.length;
 }
-
-String _buildAmbientDeclaration(String identifier, String type) =>
-    'final $type $identifier = _\$dacoAmbient<$type>();';

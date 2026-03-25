@@ -1,4 +1,5 @@
 import 'package:analyzer/dart/analysis/analysis_context.dart';
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/overlay_file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:daco/src/analyzer/analyzer.dart';
@@ -18,6 +19,14 @@ String writeFile(String path, String content) {
   return fullPath;
 }
 
+void recreateAnalyzer() {
+  analysisContext = createAnalysisContextCollection(
+    includedPaths: [sandboxDir!.path],
+    resourceProvider: resourceProvider,
+  ).contexts.first;
+  analyzer = DacoAnalyzer(analysisContext: analysisContext);
+}
+
 void main() {
   setUpAll(() async {
     await createSandboxDir();
@@ -27,11 +36,7 @@ void main() {
     resourceProvider = OverlayResourceProvider(
       PhysicalResourceProvider.INSTANCE,
     );
-    analysisContext = createAnalysisContextCollection(
-      includedPaths: [sandboxDir!.path],
-      resourceProvider: resourceProvider,
-    ).contexts.first;
-    analyzer = DacoAnalyzer(analysisContext: analysisContext);
+    recreateAnalyzer();
   });
 
   group('getParsedBlock', () {
@@ -177,6 +182,55 @@ const a = 'a'
         expect(errors.first.offset, 18);
         expect(errors.first.length, 3);
       });
+
+      test('supports no_analyze on fenced code blocks', () async {
+        final path = writeFile('a.md', '''
+```dart main no_analyze
+greet();
+```
+''');
+        final errors = await analyzer.getErrors(path);
+        expect(errors, isEmpty);
+      });
+
+      test('ignores diagnostics filtered by analysis options', () async {
+        writeFile('analysis_options.yaml', '''
+analyzer:
+  errors:
+    unused_local_variable: ignore
+''');
+        recreateAnalyzer();
+
+        final path = writeFile('a.md', '''
+```dart main
+final x = 1;
+```
+''');
+        final errors = await analyzer.getErrors(path);
+        expect(errors, isEmpty);
+      });
+
+      test('applies severity overrides from analysis options', () async {
+        writeFile('analysis_options.yaml', '''
+analyzer:
+  errors:
+    unused_local_variable: error
+''');
+        recreateAnalyzer();
+
+        final path = writeFile('a.md', '''
+```dart main
+final x = 1;
+```
+''');
+        final errors = await analyzer.getErrors(path);
+        expect(errors, hasLength(1));
+        expect(
+          errors.single.diagnosticCode.lowerCaseName,
+          'unused_local_variable',
+        );
+        expect(errors.single.diagnosticCode.severity, DiagnosticSeverity.ERROR);
+      });
     });
 
     group('MDX', () {
@@ -194,7 +248,7 @@ const a = 'a'
         expect(errors.first.length, 3);
       });
 
-      test('supports snippet style code with ambient identifiers', () async {
+      test('reports undefined identifiers in snippet style code', () async {
         final path = writeFile('a.mdx', '''
 <CodeExample id={1} title="Hello">
 ```dart
@@ -203,6 +257,21 @@ return;
 }
 
 await collection.saveDocument(doc);
+```
+</CodeExample>
+''');
+        final errors = await analyzer.getErrors(path);
+        expect(
+          errors.map((it) => it.diagnosticCode.lowerCaseName),
+          everyElement('undefined_identifier'),
+        );
+      });
+
+      test('supports no_analyze on fenced code blocks', () async {
+        final path = writeFile('a.mdx', '''
+<CodeExample id={1} title="Hello">
+```dart main no_analyze
+greet();
 ```
 </CodeExample>
 ''');

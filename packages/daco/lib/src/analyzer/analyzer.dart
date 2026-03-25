@@ -131,7 +131,10 @@ class DacoAnalyzer implements DacoAnalysisContext, DacoAnalysisSession {
 
     for (final codeExampleResult in result.codeExampleResults) {
       allErrors.addAll(
-        codeExampleResult.resolvedUnitResult.diagnostics
+        applyErrorProcessors(
+              codeExampleResult.resolvedUnitResult.diagnostics,
+              codeExampleResult.resolvedUnitResult.analysisOptions,
+            )
             .map(
               (error) => truncateMultilineError(
                 error,
@@ -208,125 +211,34 @@ class DacoAnalyzer implements DacoAnalysisContext, DacoAnalysisSession {
     DartCodeExample example, {
     required int modificationStamp,
   }) async {
-    final ambientDeclarations = <String, String>{};
+    final composedLibrary = example.buildExampleLibrary(
+      publicApiFileUri: _publicApiFileUri,
+      uri: codeExamplePath,
+    );
 
-    while (true) {
-      final composedLibrary = example.buildExampleLibrary(
-        publicApiFileUri: _publicApiFileUri,
-        ambientDeclarations: ambientDeclarations,
-        uri: codeExamplePath,
-      );
+    _resourceProvider.setOverlay(
+      codeExamplePath,
+      content: composedLibrary.text,
+      modificationStamp: modificationStamp,
+    );
 
-      _resourceProvider.setOverlay(
-        codeExamplePath,
-        content: composedLibrary.text,
-        modificationStamp: modificationStamp,
-      );
+    _context.changeFile(codeExamplePath);
+    await _context.applyPendingFileChanges();
 
-      _context.changeFile(codeExamplePath);
-      await _context.applyPendingFileChanges();
+    final result = await _context.currentSession.getResolvedUnit(
+      codeExamplePath,
+    );
 
-      final result = await _context.currentSession.getResolvedUnit(
-        codeExamplePath,
-      );
-
-      if (result is! ResolvedUnitResult) {
-        throw Exception('$result for $codeExamplePath');
-      }
-
-      final inferredAmbientDeclarations = _collectAmbientDeclarations(
-        result.diagnostics,
-        composedLibrary,
-        ambientDeclarations,
-      );
-
-      if (inferredAmbientDeclarations.isEmpty) {
-        return _CodeExampleResult(
-          example: example,
-          composedLibrary: composedLibrary,
-          resolvedUnitResult: result,
-        );
-      }
-
-      ambientDeclarations.addAll(inferredAmbientDeclarations);
-    }
-  }
-
-  Map<String, String> _collectAmbientDeclarations(
-    Iterable<Diagnostic> diagnostics,
-    ComposedDartBlock composedLibrary,
-    Map<String, String> currentAmbientDeclarations,
-  ) {
-    final ambientDeclarations = <String, String>{};
-
-    for (final diagnostic in diagnostics) {
-      final end = diagnostic.offset + diagnostic.length;
-      if (diagnostic.offset < 0 || end > composedLibrary.text.length) {
-        continue;
-      }
-
-      final snippet = composedLibrary.text.substring(diagnostic.offset, end);
-
-      switch (diagnostic.diagnosticCode.lowerCaseName) {
-        case 'undefined_identifier':
-        case 'undefined_function':
-          if (_ambientIdentifierRegExp.hasMatch(snippet) &&
-              !currentAmbientDeclarations.containsKey(snippet)) {
-            ambientDeclarations[snippet] = 'dynamic';
-          }
-        case 'argument_type_not_assignable':
-          final type = _extractQuotedType(
-            diagnostic.message,
-            prefix: "parameter type '",
-          );
-          if (type != null &&
-              _ambientIdentifierRegExp.hasMatch(snippet) &&
-              currentAmbientDeclarations[snippet] != type) {
-            ambientDeclarations[snippet] = type;
-          }
-        case 'list_element_type_not_assignable':
-          final type = _extractQuotedType(
-            diagnostic.message,
-            prefix: "list type '",
-          );
-          if (type != null &&
-              _ambientIdentifierRegExp.hasMatch(snippet) &&
-              currentAmbientDeclarations[snippet] != type) {
-            ambientDeclarations[snippet] = type;
-          }
-        case 'for_in_of_invalid_type':
-          final type = diagnostic.message.contains("'Stream'")
-              ? 'Stream<dynamic>'
-              : diagnostic.message.contains("'Iterable'")
-              ? 'Iterable<dynamic>'
-              : null;
-          if (type != null &&
-              _ambientIdentifierRegExp.hasMatch(snippet) &&
-              currentAmbientDeclarations[snippet] != type) {
-            ambientDeclarations[snippet] = type;
-          }
-      }
+    if (result is! ResolvedUnitResult) {
+      throw Exception('$result for $codeExamplePath');
     }
 
-    return ambientDeclarations;
+    return _CodeExampleResult(
+      example: example,
+      composedLibrary: composedLibrary,
+      resolvedUnitResult: result,
+    );
   }
-}
-
-final _ambientIdentifierRegExp = RegExp(r'^[a-z_]\w*$');
-
-String? _extractQuotedType(String message, {required String prefix}) {
-  final start = message.indexOf(prefix);
-  if (start == -1) {
-    return null;
-  }
-
-  final typeStart = start + prefix.length;
-  final typeEnd = message.indexOf("'", typeStart);
-  if (typeEnd == -1) {
-    return null;
-  }
-
-  return message.substring(typeStart, typeEnd);
 }
 
 class _FileResult {

@@ -188,6 +188,22 @@ lib/greeter.dart:4:5 • The named parameter 'name' is required, but there's no 
 # Example code attributes
 
 Example code can be annotated with attributes to influence how it is processed.
+The same attributes are supported for fenced Dart code in Dart documentation
+comments, Markdown files, and MDX files, and they behave the same in each
+context.
+
+For standalone Markdown and MDX docs, you can think of the whole file as one
+large documentation comment. Dart fenced code blocks are processed separately by
+default and are only composed into one example when you opt in with
+`multi_begin` / `multi_end`.
+The same attributes are supported for fenced Dart code in Dart documentation
+comments, Markdown files, and MDX files, and they behave the same in each
+context.
+
+For standalone Markdown and MDX docs, you can think of the whole file as one
+large documentation comment. Dart fenced code blocks are processed separately by
+default and are only composed into one example when you opt in with
+`multi_begin` / `multi_end`.
 
 ## `main`
 

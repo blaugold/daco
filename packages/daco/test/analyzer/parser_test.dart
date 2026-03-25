@@ -237,6 +237,31 @@ await collection.saveDocument(doc);
 
         expect(block.dartCodeBlocks.single.isInMainBody, isTrue);
       });
+
+      test('parses supported attributes on markdown code blocks', () {
+        final block = parseMarkdown('''
+```dart main no_format no_analyze
+await greet();
+```
+''');
+
+        final codeBlock = block.dartCodeBlocks.single;
+        expect(codeBlock.isInMainBody, isTrue);
+        expect(codeBlock.shouldBeFormatted, isFalse);
+        expect(block.dartCodeExamples.single.shouldBeAnalyzed, isFalse);
+      });
+
+      test('treats await for as main-body code in main blocks', () {
+        final block = parseMarkdown('''
+```dart main
+await for (final change in replicator.changes()) {
+  print(change);
+}
+```
+''');
+
+        expect(block.dartCodeBlocks.single.isInMainBody, isTrue);
+      });
     });
 
     group('Dart code examples', () {

@@ -482,6 +482,73 @@ await collection.saveDocument(doc);
 ''',
       ),
     );
+
+    test(
+      'supports no_format on markdown code blocks',
+      () => expectFormatterOutput(
+        path: 'README.md',
+        input: '''
+```dart main no_format
+if (data == null) {
+return;
+}
+```
+''',
+        output: '''
+```dart main no_format
+if (data == null) {
+return;
+}
+```
+''',
+      ),
+    );
+
+    test(
+      'supports main on markdown code blocks',
+      () => expectFormatterOutput(
+        path: 'README.md',
+        input: '''
+```dart main
+if (data == null) {
+return;
+}
+```
+''',
+        output: '''
+```dart main
+if (data == null) {
+  return;
+}
+```
+''',
+      ),
+    );
+
+    test(
+      'supports no_format on mdx code blocks',
+      () => expectFormatterOutput(
+        path: 'docs/example.mdx',
+        input: '''
+<CodeExample id={1} title="Hello">
+```dart main no_format
+if (data == null) {
+return;
+}
+```
+</CodeExample>
+''',
+        output: '''
+<CodeExample id={1} title="Hello">
+```dart main no_format
+if (data == null) {
+return;
+}
+```
+</CodeExample>
+''',
+      ),
+    );
   });
 
   test(
