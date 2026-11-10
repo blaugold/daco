@@ -67,7 +67,6 @@ class TestLogger implements Logger {
 }
 
 Future<void> installPrettierServer() async {
-  await PrettierService(
-    logger: DacoLogger(StandardLogger()),
-  ).installPrettierServer();
+  await PrettierService(logger: DacoLogger(StandardLogger()))
+      .installPrettierServer();
 }

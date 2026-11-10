@@ -25,9 +25,8 @@ const b = 'b';
 ''');
 
     final logger = TestLogger();
-    await DacoCommandRunner(
-      logger: logger.toDacoLogger(),
-    ).run(['analyze', sandboxDir!.path]);
+    await DacoCommandRunner(logger: logger.toDacoLogger())
+        .run(['analyze', sandboxDir!.path]);
 
     expect(logger.output, '''
 Analyzing ${p.relative(sandboxDir!.path)}...
