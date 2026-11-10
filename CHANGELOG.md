@@ -3,6 +3,28 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 2026-11-10
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
+ - [`daco` - `v0.5.2`](#daco---v052)
+
+---
+
+#### `daco` - `v0.5.2`
+
+ - **FIX**: Flutter symlink handling in gitignore filtering ([#52](https://github.com/blaugold/daco/issues/52)). ([f2a26c48](https://github.com/blaugold/daco/commit/f2a26c48bfd728fa3d4a7a34f20201a9a6f0f130))
+ - **FEAT**: support analyzer 14 ([#56](https://github.com/blaugold/daco/issues/56)). ([66756ba0](https://github.com/blaugold/daco/commit/66756ba084d13a2d12788fb8484cfb274d193d77))
+
+
 ## 2026-03-15
 
 ### Changes

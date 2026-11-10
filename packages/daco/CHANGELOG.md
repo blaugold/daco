@@ -1,3 +1,8 @@
+## 0.5.2
+
+ - **FIX**: Flutter symlink handling in gitignore filtering ([#52](https://github.com/blaugold/daco/issues/52)). ([f2a26c48](https://github.com/blaugold/daco/commit/f2a26c48bfd728fa3d4a7a34f20201a9a6f0f130))
+ - **FEAT**: support analyzer 14 ([#56](https://github.com/blaugold/daco/issues/56)). ([66756ba0](https://github.com/blaugold/daco/commit/66756ba084d13a2d12788fb8484cfb274d193d77))
+
 ## 0.5.1
 
  - **FEAT**: skip gitignored files in daco format ([#50](https://github.com/blaugold/daco/issues/50)). ([51c725c5](https://github.com/blaugold/daco/commit/51c725c50f368b2462b303123220a6b651c7a47c))
