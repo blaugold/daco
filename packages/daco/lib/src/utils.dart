@@ -30,8 +30,8 @@ final packageRoot = () async {
 /// Locates the hosted package of the version of this executable in the pub
 /// cache, adding it to the pub cache if necessary.
 ///
-/// This supports executables installed with `dart install`, which are placed
-/// in an app bundle with the layout
+/// This supports executables installed with `dart install`, which are placed in
+/// an app bundle with the layout
 /// `<package>/<source>/<version>/bundle/bin/<executable>`, next to a copy of
 /// the package's `pubspec.yaml`.
 Future<String> _packageRootInPubCache() async {

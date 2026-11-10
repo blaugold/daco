@@ -20,9 +20,8 @@ const a = 'a';
 ''');
 
     final logger = TestLogger();
-    await DacoCommandRunner(
-      logger: logger.toDacoLogger(),
-    ).run(['format', file.path]);
+    await DacoCommandRunner(logger: logger.toDacoLogger())
+        .run(['format', file.path]);
 
     expect(file.readAsStringSync(), '''
 /// a a
@@ -40,9 +39,8 @@ const a = 'a'
 ''');
 
     final logger = TestLogger();
-    await DacoCommandRunner(
-      logger: logger.toDacoLogger(),
-    ).run(['format', file.path]);
+    await DacoCommandRunner(logger: logger.toDacoLogger())
+        .run(['format', file.path]);
 
     expect(logger.output, '''
 FAILED    ${p.relative(file.path)}
@@ -65,9 +63,8 @@ const a = 'a';
 ''');
 
     final logger = TestLogger();
-    await DacoCommandRunner(
-      logger: logger.toDacoLogger(),
-    ).run(['format', file.path]);
+    await DacoCommandRunner(logger: logger.toDacoLogger())
+        .run(['format', file.path]);
 
     expect(logger.output, '''
 FAILED    ${p.relative(file.path)}
