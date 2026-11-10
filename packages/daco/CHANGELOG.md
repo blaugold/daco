@@ -1,8 +1,3 @@
-## 0.5.2
-
- - **FIX**: locate prettier server when installed with `dart install`.
- - **FEAT**: support analyzer 14.
-
 ## 0.5.1
 
  - **FEAT**: skip gitignored files in daco format ([#50](https://github.com/blaugold/daco/issues/50)). ([51c725c5](https://github.com/blaugold/daco/commit/51c725c50f368b2462b303123220a6b651c7a47c))

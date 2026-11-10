@@ -3,28 +3,6 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
-## 2026-11-10
-
-### Changes
-
----
-
-Packages with breaking changes:
-
- - There are no breaking changes in this release.
-
-Packages with other changes:
-
- - [`daco` - `v0.5.2`](#daco---v052)
-
----
-
-#### `daco` - `v0.5.2`
-
- - **FIX**: locate prettier server when installed with `dart install`.
- - **FEAT**: support analyzer 14.
-
-
 ## 2026-03-15
 
 ### Changes
