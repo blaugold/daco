@@ -7,6 +7,7 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:collection/collection.dart';
 import 'package:dart_style/dart_style.dart';
+import 'package:pub_semver/pub_semver.dart';
 
 import 'analyzer/block.dart';
 import 'analyzer/utils.dart';
@@ -30,14 +31,35 @@ class DacoFormatter {
 
   /// Formats the given [source] string containing an entire Dart compilation
   /// unit.
-  Future<String> format(String source, {String? path}) {
+  ///
+  /// [languageVersion] is the Dart language version of the library, which
+  /// determines the formatting style. It defaults to the latest language
+  /// version supported by the formatter. Embedded Dart code in comments is
+  /// formatted with the same language version.
+  Future<String> format(
+    String source, {
+    String? path,
+    Version? languageVersion,
+  }) {
     final parseResult = parseString(
       text: source,
       uri: path ?? 'file.dart',
       withErrorsInRootBlock: true,
     );
     _checkForSyntacticErrors(parseResult.errors);
-    return _formatBlock(parseResult.block, lineLength: lineLength);
+    return _formatBlock(
+      parseResult.block,
+      lineLength: lineLength,
+      languageVersion: _effectiveLanguageVersion(languageVersion),
+    );
+  }
+
+  static Version _effectiveLanguageVersion(Version? languageVersion) {
+    final latest = DartFormatter.latestLanguageVersion;
+    if (languageVersion == null || languageVersion > latest) {
+      return latest;
+    }
+    return languageVersion;
   }
 
   void _checkForSyntacticErrors(List<Diagnostic> errors) {
@@ -53,11 +75,23 @@ class DacoFormatter {
     }
   }
 
-  Future<String> _formatBlock(Block block, {required int lineLength}) {
+  Future<String> _formatBlock(
+    Block block, {
+    required int lineLength,
+    required Version languageVersion,
+  }) {
     if (block is DartBlock) {
-      return _formatDartBlock(block, lineLength: lineLength);
+      return _formatDartBlock(
+        block,
+        lineLength: lineLength,
+        languageVersion: languageVersion,
+      );
     } else if (block is MarkdownBlock) {
-      return _formatMarkdownBlock(block, lineLength: lineLength);
+      return _formatMarkdownBlock(
+        block,
+        lineLength: lineLength,
+        languageVersion: languageVersion,
+      );
     } else {
       unreachable();
     }
@@ -66,6 +100,7 @@ class DacoFormatter {
   Future<String> _formatDartBlock(
     DartBlock block, {
     required int lineLength,
+    required Version languageVersion,
   }) async {
     final formatter = DartFormatter(
       pageWidth:
@@ -73,7 +108,7 @@ class DacoFormatter {
           // We add 2 to the line length to account for the indentation within
           // the main function.
           (block.isInMainBody ? 2 : 0),
-      languageVersion: DartFormatter.latestLanguageVersion,
+      languageVersion: languageVersion,
     );
 
     var text = block.text;
@@ -113,6 +148,7 @@ class DacoFormatter {
             of: comment,
             lineLength: lineLength,
           ),
+          languageVersion: languageVersion,
         );
       }),
     );
@@ -123,6 +159,7 @@ class DacoFormatter {
   Future<String> _formatMarkdownBlock(
     MarkdownBlock block, {
     required int lineLength,
+    required Version languageVersion,
   }) async {
     final formattedText = await _formatDocumentationCommentMarkdown(
       block.text,
@@ -146,6 +183,7 @@ class DacoFormatter {
             of: codeBlock,
             lineLength: lineLength,
           ),
+          languageVersion: languageVersion,
         );
       }),
     );
