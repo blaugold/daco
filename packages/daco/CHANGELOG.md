@@ -1,3 +1,7 @@
+## 0.5.2+1
+
+ - **FIX**: format with the language version of the containing package ([#57](https://github.com/blaugold/daco/issues/57)). ([5bd90f81](https://github.com/blaugold/daco/commit/5bd90f81a19c636c4d98be47985be45455170ab9))
+
 ## 0.5.2
 
  - **FIX**: Flutter symlink handling in gitignore filtering ([#52](https://github.com/blaugold/daco/issues/52)). ([f2a26c48](https://github.com/blaugold/daco/commit/f2a26c48bfd728fa3d4a7a34f20201a9a6f0f130))

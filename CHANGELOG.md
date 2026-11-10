@@ -15,6 +15,27 @@ Packages with breaking changes:
 
 Packages with other changes:
 
+ - [`daco` - `v0.5.2+1`](#daco---v0521)
+
+---
+
+#### `daco` - `v0.5.2+1`
+
+ - **FIX**: format with the language version of the containing package ([#57](https://github.com/blaugold/daco/issues/57)). ([5bd90f81](https://github.com/blaugold/daco/commit/5bd90f81a19c636c4d98be47985be45455170ab9))
+
+
+## 2026-11-10
+
+### Changes
+
+---
+
+Packages with breaking changes:
+
+ - There are no breaking changes in this release.
+
+Packages with other changes:
+
  - [`daco` - `v0.5.2`](#daco---v052)
 
 ---
