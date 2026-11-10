@@ -1,7 +1,5 @@
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/source/line_info.dart';
-// ignore: implementation_imports
-import 'package:analyzer/src/diagnostic/diagnostic_message.dart';
 
 /// Truncates multiline [DiagnosticMessage]s of the [error] to one line.
 Diagnostic truncateMultilineError(Diagnostic error, LineInfo lineInfo) {
@@ -38,11 +36,32 @@ DiagnosticMessage _truncateMultilineDiagnosticMessage(
   final truncatedLength =
       lineInfo.getOffsetOfLineAfter(message.offset) - message.offset;
 
-  return DiagnosticMessageImpl(
-    filePath: message.filePath,
-    message: message.messageText(includeUrl: false),
-    url: message.url,
-    offset: message.offset,
-    length: truncatedLength,
-  );
+  return _TruncatedDiagnosticMessage(message, truncatedLength);
+}
+
+/// A [DiagnosticMessage] that wraps another message but reports a shorter
+/// [length].
+///
+/// The analyzer's own implementation lives in a private library whose location
+/// changes between analyzer versions, so daco provides its own.
+class _TruncatedDiagnosticMessage implements DiagnosticMessage {
+  _TruncatedDiagnosticMessage(this._message, this.length);
+
+  final DiagnosticMessage _message;
+
+  @override
+  final int length;
+
+  @override
+  String get filePath => _message.filePath;
+
+  @override
+  int get offset => _message.offset;
+
+  @override
+  String? get url => _message.url;
+
+  @override
+  String messageText({required bool includeUrl}) =>
+      _message.messageText(includeUrl: includeUrl);
 }
