@@ -8,6 +8,7 @@ import 'package:path/path.dart' as p;
 
 import '../file_utils.dart';
 import '../formatter.dart';
+import '../language_version.dart';
 import '../logging.dart';
 import '../prettier.dart';
 import '../utils.dart';
@@ -86,11 +87,13 @@ class FormatCommand extends DacoCommand {
         lineLength: _lineLength,
         prettierService: prettierService,
       );
+      final languageVersionResolver = LanguageVersionResolver();
 
       for (final file in files) {
         final result = await _formatFile(
           file,
           formatter: dartFormatter,
+          languageVersionResolver: languageVersionResolver,
           logger: logger,
         );
         switch (result) {
@@ -115,13 +118,19 @@ enum _FormattingResult { unchanged, changed, failed }
 Future<_FormattingResult> _formatFile(
   File file, {
   required DacoFormatter formatter,
+  required LanguageVersionResolver languageVersionResolver,
   required DacoLogger logger,
 }) async {
   final relativePath = p.relative(file.path);
   final source = await file.readAsString();
+  final languageVersion = await languageVersionResolver.languageVersionOf(file);
   String formattedSource;
   try {
-    formattedSource = await formatter.format(source, path: file.path);
+    formattedSource = await formatter.format(
+      source,
+      path: file.path,
+      languageVersion: languageVersion,
+    );
   } on FormatterException catch (exception) {
     logger
       ..stderr('${AnsiStyles.red('FAILED')}    $relativePath')
